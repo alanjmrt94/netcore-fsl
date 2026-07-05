@@ -10,18 +10,26 @@ namespace NetcoreFSL.Searcher.BaseClasses
     private readonly object eventLock = new();
     private readonly ConcurrentDictionary<string, byte> visitedDirectories = new();
     private readonly SemaphoreSlim concurrencyLimit;
+    private readonly CancellationTokenSource searchCancellation;
+    private readonly ManualResetEventSlim pauseGate = new(true);
+    private volatile bool isPaused;
 
     protected ExecuteHandlers HandlerOption { get; set; }
 
     protected string folder;
     protected string pattern;
 
-    protected SearcherBase(ExecuteHandlers handlerOption, string folder, string pattern = "")
+    protected SearcherBase(
+      ExecuteHandlers handlerOption,
+      string folder,
+      string pattern = "",
+      CancellationToken cancellationToken = default)
     {
       HandlerOption = handlerOption;
       this.folder = folder;
       this.pattern = pattern;
       concurrencyLimit = new SemaphoreSlim(Math.Max(1, Environment.ProcessorCount));
+      searchCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
     }
 
     public event EventHandler<DriveEventArgs> DrivesFound;
@@ -33,11 +41,49 @@ namespace NetcoreFSL.Searcher.BaseClasses
     public event EventHandler<SearchPausedEventArgs> SearchPaused;
     public event EventHandler<SearchResumedEventArgs> SearchResumed;
 
+    public bool IsPaused => isPaused;
+
+    public bool IsCancellationRequested => searchCancellation.IsCancellationRequested;
+
     public abstract void StartSearch();
+
+    public void CancelSearch()
+    {
+      if (!searchCancellation.IsCancellationRequested)
+      {
+        searchCancellation.Cancel();
+      }
+    }
+
+    public void PauseSearch()
+    {
+      if (isPaused)
+      {
+        return;
+      }
+
+      isPaused = true;
+      pauseGate.Reset();
+      OnSearchPaused(true);
+    }
+
+    public void ResumeSearch()
+    {
+      if (!isPaused)
+      {
+        return;
+      }
+
+      isPaused = false;
+      pauseGate.Set();
+      OnSearchResumed(true);
+    }
 
     protected abstract void GetDrives();
     protected abstract void GetFiles(string folder);
     protected abstract List<DirectoryInfo> GetFolders(string folder);
+
+    protected CancellationToken SearchToken => searchCancellation.Token;
 
     protected virtual void OnDrivesFound(List<DriveInfo> drives)
     {
@@ -82,20 +128,34 @@ namespace NetcoreFSL.Searcher.BaseClasses
     protected virtual void RunFSL()
     {
       bool completed = false;
+      bool canceled = false;
 
       try
       {
+        visitedDirectories.Clear();
         IEnumerable<string> roots = GetSearchRoots();
+        CancellationToken token = searchCancellation.Token;
+        ParallelOptions options = new()
+        {
+          MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount),
+          CancellationToken = token
+        };
 
-        Parallel.ForEach(
-          roots,
-          new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount) },
-          root => SearchDirectoryRecursive(root));
-
-        completed = true;
+        Parallel.ForEach(roots, options, root => SearchDirectoryRecursive(root));
+        completed = !token.IsCancellationRequested;
+      }
+      catch (OperationCanceledException)
+      {
+        canceled = true;
       }
       finally
       {
+        if (canceled || searchCancellation.IsCancellationRequested)
+        {
+          OnSearchCanceled(true);
+          completed = false;
+        }
+
         OnSearchCompleted(completed);
       }
     }
@@ -134,9 +194,17 @@ namespace NetcoreFSL.Searcher.BaseClasses
       }
     }
 
+    private void WaitIfPaused()
+    {
+      pauseGate.Wait(searchCancellation.Token);
+    }
+
     private void SearchDirectoryRecursive(string directoryPath)
     {
-      concurrencyLimit.Wait();
+      searchCancellation.Token.ThrowIfCancellationRequested();
+      WaitIfPaused();
+
+      concurrencyLimit.Wait(searchCancellation.Token);
 
       try
       {
@@ -154,9 +222,15 @@ namespace NetcoreFSL.Searcher.BaseClasses
           return;
         }
 
+        ParallelOptions options = new()
+        {
+          MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount),
+          CancellationToken = searchCancellation.Token
+        };
+
         Parallel.ForEach(
           subdirectories,
-          new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount) },
+          options,
           subdirectory => SearchDirectoryRecursive(subdirectory.FullName));
       }
       finally

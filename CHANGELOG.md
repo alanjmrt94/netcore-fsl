@@ -8,8 +8,20 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
-- (pendiente Fase 2) Cancelación, pausa/reanudación y `ExecuteHandlers.InNewTask`.
 - (pendiente Fase 3) Búsqueda de carpetas con `FolderSearch()`.
+
+## [0.3.0] - 2026-07-05
+
+### Added
+- Todos los eventos de `SearcherBase` expuestos en `FSL` (`DrivesFound`, `FoldersFound`, `SearchCanceled`, `SearchPaused`, `SearchResumed`).
+- Constructor `FSL(..., CancellationToken)` para cancelación externa.
+- `CancelSearch()`, `PauseSearch()` y `ResumeSearch()` en `FSL` y `SearcherBase`.
+- Soporte de `ExecuteHandlers.InNewTask` (búsqueda en `Task.Run`).
+- `NetcoreTEST`: argumento `sync|async`, variable `FSL_TIMEOUT_MS` y eventos de ciclo de vida.
+
+### Changed
+- Nueva búsqueda cancela automáticamente la anterior en la misma instancia `FSL`.
+- `README.md`: tabla de API, limitaciones y ejemplos de cancelación/async.
 
 ## [0.2.0] - 2026-07-05
 
@@ -40,6 +52,7 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/alanjmrt94/netcore-fsl/releases/tag/v0.1.0

@@ -9,7 +9,11 @@ namespace NetcoreFSL.Searcher.Classes
   {
     private readonly string searchPattern;
 
-    public FilePatternSearch(ExecuteHandlers handlerOption, string folder, string pattern = "") : base(handlerOption, folder, pattern)
+    public FilePatternSearch(
+      ExecuteHandlers handlerOption,
+      string folder,
+      string pattern = "",
+      CancellationToken cancellationToken = default) : base(handlerOption, folder, pattern, cancellationToken)
     {
       searchPattern = SearchPatternHelper.Normalize(pattern);
     }

@@ -1,8 +1,11 @@
 ﻿using NetcoreFSL;
 using NetcoreFSL.Searcher.Enums;
 
-// Uso: dotnet run -- <carpeta> <patron> [file|folder]
-// Variables de entorno: FSL_FOLDER, FSL_PATTERN, FSL_MODE (file|folder)
+// Uso: dotnet run -- <carpeta> <patron> [file|folder] [sync|async]
+// Variables de entorno:
+//   FSL_FOLDER, FSL_PATTERN, FSL_MODE (file|folder)
+//   FSL_HANDLER (sync|async)
+//   FSL_TIMEOUT_MS — cancela la búsqueda tras N milisegundos (opcional)
 
 string folder = args.Length > 0
   ? args[0]
@@ -16,7 +19,25 @@ string mode = args.Length > 2
   ? args[2]
   : Environment.GetEnvironmentVariable("FSL_MODE") ?? "file";
 
-FSL fsl = new(ExecuteHandlers.InCurrentTask, folder, pattern);
+string handlerArg = args.Length > 3
+  ? args[3]
+  : Environment.GetEnvironmentVariable("FSL_HANDLER") ?? "sync";
+
+ExecuteHandlers handler = handlerArg.Equals("async", StringComparison.OrdinalIgnoreCase)
+  || handlerArg.Equals("InNewTask", StringComparison.OrdinalIgnoreCase)
+  ? ExecuteHandlers.InNewTask
+  : ExecuteHandlers.InCurrentTask;
+
+using CancellationTokenSource cts = new();
+if (int.TryParse(Environment.GetEnvironmentVariable("FSL_TIMEOUT_MS"), out int timeoutMs) && timeoutMs > 0)
+{
+  cts.CancelAfter(timeoutMs);
+  Console.WriteLine($"Timeout enabled: {timeoutMs} ms");
+}
+
+using ManualResetEventSlim searchDone = new(false);
+
+FSL fsl = new(handler, folder, pattern, cts.Token);
 
 int matchCount = 0;
 
@@ -29,13 +50,29 @@ fsl.FilesFound += (_, e) =>
   }
 };
 
+fsl.SearchCanceled += (_, e) =>
+{
+  Console.WriteLine($"Search canceled: {e.IsCanceled}");
+};
+
+fsl.SearchPaused += (_, e) =>
+{
+  Console.WriteLine($"Search paused: {e.IsPaused}");
+};
+
+fsl.SearchResumed += (_, e) =>
+{
+  Console.WriteLine($"Search resumed: {e.IsResumed}");
+};
+
 fsl.SearchCompleted += (_, e) =>
 {
   Console.WriteLine($"Search completed: {e.IsCompleted}, matches: {matchCount}");
+  searchDone.Set();
 };
 
 Console.WriteLine($"NetcoreFSL v{FSL.Version}");
-Console.WriteLine($"Running TEST... folder={folder}, pattern={pattern}, mode={mode}");
+Console.WriteLine($"Running TEST... folder={folder}, pattern={pattern}, mode={mode}, handler={handler}");
 
 if (mode.Equals("folder", StringComparison.OrdinalIgnoreCase))
 {
@@ -44,6 +81,11 @@ if (mode.Equals("folder", StringComparison.OrdinalIgnoreCase))
 else
 {
   fsl.FileSearch();
+}
+
+if (handler == ExecuteHandlers.InNewTask)
+{
+  searchDone.Wait(CancellationToken.None);
 }
 
 Console.WriteLine("TEST finished!");

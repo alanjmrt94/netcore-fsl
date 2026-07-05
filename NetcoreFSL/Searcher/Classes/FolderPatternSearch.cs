@@ -5,7 +5,11 @@ namespace NetcoreFSL.Searcher.Classes
 {
   internal class FolderPatternSearch : SearcherBase
   {
-    public FolderPatternSearch(ExecuteHandlers handlerOption, string folder, string pattern = "") : base(handlerOption, folder, pattern)
+    public FolderPatternSearch(
+      ExecuteHandlers handlerOption,
+      string folder,
+      string pattern = "",
+      CancellationToken cancellationToken = default) : base(handlerOption, folder, pattern, cancellationToken)
     {
     }
 
