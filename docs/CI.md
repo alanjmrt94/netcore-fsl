@@ -4,6 +4,8 @@ El repositorio usa [GitHub Actions](https://docs.github.com/en/actions) para bui
 
 ## Workflows
 
+Los workflows usan acciones oficiales en **Node 24** (`@v5`) y `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` a nivel de workflow.
+
 | Archivo | Disparador | Qué hace |
 |---------|------------|----------|
 | `.github/workflows/ci.yml` | Push / PR a `master` o `main` | `restore` → `build` (Release) → `test` → `pack` (smoke) |
