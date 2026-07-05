@@ -1,6 +1,6 @@
 # NetcoreFSL
 
-**Versión:** `1.0.1` · **Estado:** estable (Fases 0–5)  
+**Versión:** `1.0.2` · **Estado:** estable (Fases 0–5)  
 **aka:** NetCore FastSearchLibrary
 
 Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que permite buscar archivos y directorios en el sistema de archivos mediante patrones, con API basada en eventos.
@@ -68,7 +68,7 @@ fsl.FileSearch();
 
 | Miembro | Descripción |
 |---------|-------------|
-| `FSL.Version` | Versión semántica (`1.0.1`) |
+| `FSL.Version` | Versión semántica (`1.0.2`) |
 | `FSL(handler, folder, pattern)` | Constructor |
 | `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación |
 | `FileSearch()` | Búsqueda recursiva de archivos |
@@ -161,16 +161,16 @@ Variables de entorno: `FSL_FOLDER`, `FSL_PATTERN`, `FSL_MODE`, `FSL_HANDLER`, `F
 | Limitación | Detalle |
 |------------|---------|
 | Symlinks | Pueden generar visitas duplicadas; se detectan ciclos por ruta visitada |
-| Rutas largas (Windows) | Prefijo `\\?\` no implementado aún |
+| Rutas largas (Windows) | Prefijo `\\?\` aplicado automáticamente en rutas locales y UNC |
 | `InNewTask` | Excepciones no se propagan al hilo llamador; use `SearchCompleted` |
-| Workloads Snap | SDK vía Snap puede mostrar aviso de workloads; no afecta este proyecto |
+| Workloads Snap | SDK vía Snap puede mostrar aviso de workloads; ver `docs/VERIFICATION.md` |
 
 ## Estructura del repositorio
 
 ```
 netcore-fsl/
 ├── NetcoreFSL/          # Biblioteca principal
-├── NetcoreFSL.Tests/    # Tests xUnit (15 pruebas)
+├── NetcoreFSL.Tests/    # Tests xUnit (21 pruebas)
 ├── NetcoreTEST/         # Consola de prueba manual
 ├── docs/VERIFICATION.md # Verificación .NET 8
 └── CHANGELOG.md
@@ -179,8 +179,8 @@ netcore-fsl/
 ## Versión en tiempo de ejecución
 
 ```csharp
-Console.WriteLine(FSL.Version);        // "1.0.1"
-Console.WriteLine(FSLVersion.Current); // "1.0.1"
+Console.WriteLine(FSL.Version);        // "1.0.2"
+Console.WriteLine(FSLVersion.Current); // "1.0.2"
 ```
 
 Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
@@ -191,6 +191,7 @@ Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
 
 | Versión | Hito |
 |---------|------|
+| `1.0.2` | Pausa/reanudación, rutas largas Windows, fix deadlock |
 | `1.0.1` | Tooling, licencia y configuración de entorno |
 | `1.0.0` | Release estable — Fases 0–5 |
 | `0.5.0` | Tests y migración .NET 8 |

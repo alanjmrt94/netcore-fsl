@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Security;
 using NetcoreFSL.Searcher.Enums;
 using NetcoreFSL.Searcher.Events;
+using NetcoreFSL.Searcher.Helpers;
 
 namespace NetcoreFSL.Searcher.BaseClasses
 {
@@ -193,7 +194,7 @@ namespace NetcoreFSL.Searcher.BaseClasses
           .Select(drive => drive.RootDirectory.FullName);
       }
 
-      return new[] { Path.GetFullPath(folder) };
+      return new[] { PathHelper.GetFullPath(folder) };
     }
 
     protected bool TryEnumerateSubdirectories(string path, out DirectoryInfo[] subdirectories)
@@ -202,7 +203,8 @@ namespace NetcoreFSL.Searcher.BaseClasses
 
       try
       {
-        subdirectories = new DirectoryInfo(path).GetDirectories();
+        string fullPath = PathHelper.GetFullPath(path);
+        subdirectories = new DirectoryInfo(fullPath).GetDirectories();
         return true;
       }
       catch (Exception ex) when (
@@ -228,37 +230,47 @@ namespace NetcoreFSL.Searcher.BaseClasses
 
       concurrencyLimit.Wait(searchCancellation.Token);
 
+      DirectoryInfo[]? subdirectories = null;
+
       try
       {
-        string fullPath = Path.GetFullPath(directoryPath);
+        string fullPath = PathHelper.GetFullPath(directoryPath);
+        string canonicalKey = PathHelper.GetCanonicalKey(directoryPath);
 
-        if (!visitedDirectories.TryAdd(fullPath, 0))
+        if (!visitedDirectories.TryAdd(canonicalKey, 0))
         {
           return;
         }
 
         ProcessDirectory(fullPath);
 
-        if (!TryEnumerateSubdirectories(fullPath, out DirectoryInfo[] subdirectories))
+        if (!TryEnumerateSubdirectories(fullPath, out DirectoryInfo[] found))
         {
           return;
         }
 
-        ParallelOptions options = new()
-        {
-          MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount),
-          CancellationToken = searchCancellation.Token
-        };
-
-        Parallel.ForEach(
-          subdirectories,
-          options,
-          subdirectory => SearchDirectoryRecursive(subdirectory.FullName));
+        subdirectories = found;
       }
       finally
       {
         concurrencyLimit.Release();
       }
+
+      if (subdirectories == null || subdirectories.Length == 0)
+      {
+        return;
+      }
+
+      ParallelOptions options = new()
+      {
+        MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount),
+        CancellationToken = searchCancellation.Token
+      };
+
+      Parallel.ForEach(
+        subdirectories,
+        options,
+        subdirectory => SearchDirectoryRecursive(subdirectory.FullName));
     }
 
     private void InvokeEvent<TEventArgs>(EventHandler<TEventArgs>? handler, TEventArgs args)

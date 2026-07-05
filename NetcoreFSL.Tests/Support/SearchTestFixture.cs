@@ -58,4 +58,30 @@ internal static class SearchTestFixture
     fsl.FolderSearch();
     return matches;
   }
+
+  /// <summary>
+  /// Árbol profundo para pruebas de pausa/reanudación (más trabajo de recorrido).
+  /// </summary>
+  public static string CreateDeepFileTree(int depth, int breadth)
+  {
+    string root = Path.Combine(Path.GetTempPath(), "netcore-fsl-deep-" + Guid.NewGuid().ToString("N"));
+    CreateDeepLevel(root, depth, breadth);
+    return root;
+  }
+
+  private static void CreateDeepLevel(string path, int depth, int breadth)
+  {
+    Directory.CreateDirectory(path);
+    File.WriteAllText(Path.Combine(path, "match.txt"), "x");
+
+    if (depth <= 0)
+    {
+      return;
+    }
+
+    for (int i = 0; i < breadth; i++)
+    {
+      CreateDeepLevel(Path.Combine(path, "d" + i), depth - 1, breadth);
+    }
+  }
 }

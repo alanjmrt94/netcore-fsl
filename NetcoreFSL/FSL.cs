@@ -20,7 +20,7 @@ namespace NetcoreFSL
   /// </remarks>
   public class FSL
   {
-    /// <summary>Versión semántica de la biblioteca (p. ej. <c>1.0.1</c>).</summary>
+    /// <summary>Versión semántica de la biblioteca (p. ej. <c>1.0.2</c>).</summary>
     public static string Version => FSLVersion.Current;
 
     private readonly ExecuteHandlers handlerOption;

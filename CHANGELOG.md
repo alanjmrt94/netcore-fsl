@@ -7,8 +7,14 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-07-05
+
 ### Added
-- (pendiente Fase 6) Pipeline CI y publicación NuGet.
+- Tests automatizados de `PauseSearch` / `ResumeSearch`.
+- `PathHelper` con prefijo `\\?\` en Windows para rutas largas.
+
+### Fixed
+- Deadlock al pausar: el semáforo de concurrencia ya no se mantiene durante el recorrido paralelo de subdirectorios.
 
 ## [1.0.1] - 2026-07-05
 
@@ -95,7 +101,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...v0.5.0

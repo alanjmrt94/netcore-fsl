@@ -29,7 +29,7 @@ Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Passed!  - Failed: 0, Passed: 15, Skipped: 0, Total: 15
+Passed!  - Failed: 0, Passed: 21, Skipped: 0, Total: 21
 ```
 
 ## Suite de pruebas (`NetcoreFSL.Tests`)
@@ -38,8 +38,9 @@ Passed!  - Failed: 0, Passed: 15, Skipped: 0, Total: 15
 |-------|---------|------------|
 | `FileSearchTests` | 2 | Recursión de archivos; equivalencia `.ext` / `*.ext` |
 | `FolderSearchTests` | 2 | Carpetas por nombre literal y comodín |
-| `SearchLifecycleTests` | 3 | `CancellationToken`, `InNewTask`, permisos denegados (Linux) |
+| `SearchLifecycleTests` | 6 | `CancellationToken`, `InNewTask`, pausa/reanudación, permisos denegados (Linux) |
 | `SearchPatternHelperTests` | 8 | Normalización de patrones de archivos y carpetas |
+| `PathHelperTests` | 3 | Rutas extendidas Windows (`\\?\`); sin prefijo en Linux |
 
 ## Prueba manual (`NetcoreTEST`)
 
@@ -69,6 +70,7 @@ Alternativas si desea eliminar el aviso:
 |-------|-----|----|-----------|
 | 2026-07-05 | 8.0.407 | Linux | 15/15 tests OK |
 | 2026-07-05 | 8.0.422 | Linux | 15/15 tests OK, 0 warnings Release |
+| 2026-07-05 | 8.0.422 | Linux | 21/21 tests OK (pause/resume, PathHelper, fix deadlock pausa) |
 
 ## Empaquetado (opcional)
 
@@ -76,4 +78,4 @@ Alternativas si desea eliminar el aviso:
 dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release
 ```
 
-Genera `NetcoreFSL.1.0.1.nupkg` en `NetcoreFSL/bin/Release/`.
+Genera `NetcoreFSL.1.0.2.nupkg` en `NetcoreFSL/bin/Release/`.
