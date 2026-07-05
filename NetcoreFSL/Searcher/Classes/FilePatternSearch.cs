@@ -15,7 +15,7 @@ namespace NetcoreFSL.Searcher.Classes
       string pattern = "",
       CancellationToken cancellationToken = default) : base(handlerOption, folder, pattern, cancellationToken)
     {
-      searchPattern = SearchPatternHelper.Normalize(pattern);
+      searchPattern = SearchPatternHelper.NormalizeFile(pattern);
     }
 
     public override void StartSearch()
@@ -23,19 +23,7 @@ namespace NetcoreFSL.Searcher.Classes
       RunFSL();
     }
 
-    protected override void GetDrives()
-    {
-      List<DriveInfo> drives = DriveInfo.GetDrives()
-        .Where(drive => drive.IsReady)
-        .ToList();
-
-      if (drives.Count > 0)
-      {
-        OnDrivesFound(drives);
-      }
-    }
-
-    protected override void GetFiles(string folder)
+    protected override void ProcessDirectory(string folder)
     {
       try
       {
@@ -54,18 +42,6 @@ namespace NetcoreFSL.Searcher.Classes
         or IOException)
       {
       }
-    }
-
-    protected override List<DirectoryInfo> GetFolders(string folder)
-    {
-      if (!TryEnumerateSubdirectories(folder, out DirectoryInfo[] subdirectories))
-      {
-        return new List<DirectoryInfo>();
-      }
-
-      return subdirectories.Length > 0
-        ? subdirectories.ToList()
-        : new List<DirectoryInfo>();
     }
   }
 }

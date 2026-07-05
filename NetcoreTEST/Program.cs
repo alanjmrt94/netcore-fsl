@@ -6,18 +6,27 @@ using NetcoreFSL.Searcher.Enums;
 //   FSL_FOLDER, FSL_PATTERN, FSL_MODE (file|folder)
 //   FSL_HANDLER (sync|async)
 //   FSL_TIMEOUT_MS — cancela la búsqueda tras N milisegundos (opcional)
+//
+// Ejemplos:
+//   dotnet run -- /etc .conf file
+//   dotnet run -- /etc systemd folder
+//   dotnet run -- /var cache* folder async
+
+string mode = args.Length > 2
+  ? args[2]
+  : Environment.GetEnvironmentVariable("FSL_MODE") ?? "file";
+
+bool isFolderMode = mode.Equals("folder", StringComparison.OrdinalIgnoreCase);
 
 string folder = args.Length > 0
   ? args[0]
   : Environment.GetEnvironmentVariable("FSL_FOLDER") ?? "/etc";
 
+string defaultPattern = isFolderMode ? "systemd" : ".conf";
+
 string pattern = args.Length > 1
   ? args[1]
-  : Environment.GetEnvironmentVariable("FSL_PATTERN") ?? ".conf";
-
-string mode = args.Length > 2
-  ? args[2]
-  : Environment.GetEnvironmentVariable("FSL_MODE") ?? "file";
+  : Environment.GetEnvironmentVariable("FSL_PATTERN") ?? defaultPattern;
 
 string handlerArg = args.Length > 3
   ? args[3]
@@ -46,7 +55,16 @@ fsl.FilesFound += (_, e) =>
   matchCount += e.Files.Count;
   foreach (var file in e.Files)
   {
-    Console.WriteLine(file.FullName);
+    Console.WriteLine($"[file] {file.FullName}");
+  }
+};
+
+fsl.FoldersFound += (_, e) =>
+{
+  matchCount += e.Folders.Count;
+  foreach (var dir in e.Folders)
+  {
+    Console.WriteLine($"[folder] {dir.FullName}");
   }
 };
 
@@ -74,7 +92,7 @@ fsl.SearchCompleted += (_, e) =>
 Console.WriteLine($"NetcoreFSL v{FSL.Version}");
 Console.WriteLine($"Running TEST... folder={folder}, pattern={pattern}, mode={mode}, handler={handler}");
 
-if (mode.Equals("folder", StringComparison.OrdinalIgnoreCase))
+if (isFolderMode)
 {
   fsl.FolderSearch();
 }

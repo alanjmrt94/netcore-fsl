@@ -7,10 +7,10 @@
     <Nullable>disable</Nullable>
 
     <!-- Versión de la biblioteca (SemVer) — fuente única de verdad -->
-    <Version>0.3.0</Version>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
-    <FileVersion>0.3.0.0</FileVersion>
-    <InformationalVersion>0.3.0</InformationalVersion>
+    <Version>0.4.0</Version>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <InformationalVersion>0.4.0</InformationalVersion>
 
     <!-- Metadatos del paquete -->
     <PackageId>NetcoreFSL</PackageId>

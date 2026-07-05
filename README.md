@@ -1,6 +1,6 @@
 # NetcoreFSL
 
-**Versión:** `0.3.0` · **Estado:** WIP — Fases 0–2 completadas  
+**Versión:** `0.4.0` · **Estado:** WIP — Fases 0–3 completadas  
 **aka:** NetCore FastSearchLibrary
 
 Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite buscar archivos y directorios mediante patrones.
@@ -14,8 +14,9 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 | `ExecuteHandlers.InNewTask` (búsqueda en segundo plano) | Disponible |
 | `CancellationToken`, `CancelSearch()` | Disponible |
 | `PauseSearch()` / `ResumeSearch()` | Disponible |
-| Normalización de patrones (`.conf` → `*.conf`) | Disponible |
-| Búsqueda de carpetas (`FolderSearch`) | Pendiente (Fase 3) |
+| Normalización de patrones de archivos (`.conf` → `*.conf`) | Disponible |
+| Búsqueda recursiva de carpetas por patrón (`FolderSearch`) | Disponible |
+| Normalización de patrones de carpetas (literal o comodín) | Disponible |
 
 ## API pública (`FSL`)
 
@@ -25,7 +26,7 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 | `FSL(handler, folder, pattern)` | Constructor síncrono |
 | `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación externa |
 | `FileSearch()` | Inicia búsqueda de archivos |
-| `FolderSearch()` | Inicia búsqueda de carpetas (Fase 3) |
+| `FolderSearch()` | Inicia búsqueda de carpetas por nombre |
 | `CancelSearch()` | Cancela la búsqueda en curso |
 | `PauseSearch()` | Pausa la búsqueda en curso |
 | `ResumeSearch()` | Reanuda la búsqueda pausada |
@@ -36,7 +37,7 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 |--------|-------------------|
 | `DrivesFound` | Al enumerar unidades (búsqueda en todas las drives) |
 | `FilesFound` | Al encontrar archivos que coinciden con el patrón |
-| `FoldersFound` | Al encontrar carpetas (Fase 3) |
+| `FoldersFound` | Al encontrar carpetas cuyo nombre coincide con el patrón |
 | `SearchCanceled` | Al cancelar la búsqueda |
 | `SearchCompleted` | Al finalizar (éxito o cancelación) |
 | `SearchPaused` | Al pausar |
@@ -60,8 +61,8 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 ```csharp
 using NetcoreFSL;
 
-Console.WriteLine(FSL.Version);        // "0.3.0"
-Console.WriteLine(FSLVersion.Current); // "0.3.0"
+Console.WriteLine(FSL.Version);        // "0.4.0"
+Console.WriteLine(FSLVersion.Current); // "0.4.0"
 ```
 
 La versión se define en `NetcoreFSL/NetcoreFSL.csproj` y se expone en código mediante `FSL.Version` y `FSLVersion`.
@@ -86,6 +87,22 @@ fsl.SearchCompleted += (_, e) =>
 fsl.FileSearch();
 ```
 
+### Búsqueda de carpetas
+
+```csharp
+var fsl = new FSL(ExecuteHandlers.InCurrentTask, "/etc", "systemd");
+
+fsl.FoldersFound += (_, e) =>
+{
+  foreach (var dir in e.Folders)
+    Console.WriteLine(dir.FullName);
+};
+
+fsl.FolderSearch();
+```
+
+Patrones de carpeta: nombre literal (`systemd`, `node_modules`) o comodines (`cache*`, `*.d`).
+
 ### Cancelación y ejecución en segundo plano
 
 ```csharp
@@ -105,7 +122,8 @@ fsl.FileSearch(); // retorna de inmediato
 
 ```bash
 dotnet run --project NetcoreTEST -- /etc .conf file sync
-dotnet run --project NetcoreTEST -- /etc .conf file async
+dotnet run --project NetcoreTEST -- /etc systemd folder
+dotnet run --project NetcoreTEST -- /var cache* folder async
 FSL_TIMEOUT_MS=5000 dotnet run --project NetcoreTEST -- / usr
 ```
 
@@ -115,7 +133,6 @@ Variables de entorno: `FSL_FOLDER`, `FSL_PATTERN`, `FSL_MODE`, `FSL_HANDLER`, `F
 
 ## Limitaciones conocidas
 
-- `FolderSearch()` aún no está implementado (Fase 3).
 - Los symlinks pueden provocar visitas duplicadas; se detectan ciclos por ruta canónica visitada.
 - En Windows, rutas muy largas pueden requerir el prefijo `\\?\` (no implementado aún).
 - `InNewTask` no propaga excepciones al hilo llamador; suscríbase a `SearchCompleted`.
@@ -145,7 +162,7 @@ Durante el desarrollo pre-1.0 (`0.x.y`), las versiones **MINOR** marcan hitos de
 ```
 chore: complete phase 0 cleanup (v0.1.0)
 feat: implement recursive file search (v0.2.0)
-feat: add search lifecycle API (v0.3.0)
+feat: add folder search (v0.4.0)
 release: v1.0.0
 ```
 

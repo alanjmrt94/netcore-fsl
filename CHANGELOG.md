@@ -7,8 +7,17 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-05
+
 ### Added
-- (pendiente Fase 3) Búsqueda de carpetas con `FolderSearch()`.
+- `FolderPatternSearch` con búsqueda recursiva de carpetas por patrón de nombre.
+- `SearchPatternHelper.NormalizeFile` y `NormalizeFolder` para patrones de archivos y carpetas.
+- Evento `FoldersFound` funcional en `FolderSearch()`.
+- `NetcoreTEST`: modo `folder`, handler `FoldersFound` y ejemplos en comentarios.
+
+### Changed
+- `SearcherBase`: hook `ProcessDirectory` reemplaza `GetFiles`; `GetDrives` y `GetFolders` con implementación base compartida.
+- `README.md`: ejemplo de `FolderSearch` y tabla de funcionalidades actualizada.
 
 ## [0.3.0] - 2026-07-05
 
@@ -52,7 +61,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/alanjmrt94/netcore-fsl/releases/tag/v0.1.0

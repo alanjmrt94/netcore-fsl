@@ -79,9 +79,31 @@ namespace NetcoreFSL.Searcher.BaseClasses
       OnSearchResumed(true);
     }
 
-    protected abstract void GetDrives();
-    protected abstract void GetFiles(string folder);
-    protected abstract List<DirectoryInfo> GetFolders(string folder);
+    protected virtual void GetDrives()
+    {
+      List<DriveInfo> drives = DriveInfo.GetDrives()
+        .Where(drive => drive.IsReady)
+        .ToList();
+
+      if (drives.Count > 0)
+      {
+        OnDrivesFound(drives);
+      }
+    }
+
+    protected abstract void ProcessDirectory(string folder);
+
+    protected virtual List<DirectoryInfo> GetFolders(string folder)
+    {
+      if (!TryEnumerateSubdirectories(folder, out DirectoryInfo[] subdirectories))
+      {
+        return new List<DirectoryInfo>();
+      }
+
+      return subdirectories.Length > 0
+        ? subdirectories.ToList()
+        : new List<DirectoryInfo>();
+    }
 
     protected CancellationToken SearchToken => searchCancellation.Token;
 
@@ -215,7 +237,7 @@ namespace NetcoreFSL.Searcher.BaseClasses
           return;
         }
 
-        GetFiles(fullPath);
+        ProcessDirectory(fullPath);
 
         if (!TryEnumerateSubdirectories(fullPath, out DirectoryInfo[] subdirectories))
         {
