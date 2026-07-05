@@ -10,6 +10,17 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Added
 - (pendiente Fase 6) Pipeline CI y publicación NuGet.
 
+## [1.0.1] - 2026-07-05
+
+### Added
+- `global.json` y `.editorconfig` para builds reproducibles en .NET 8.
+- Configuración VS Code: `launch.json`, `tasks.json` y `extensions.json` para `NetcoreTEST`.
+
+### Changed
+- `.gitignore` depurado para .NET 8, tests, cobertura y `.cursor/` (local).
+- `LICENSE` y metadatos NuGet: copyright `2021-2026`.
+- Descripción del paquete actualizada a .NET 8.
+
 ## [1.0.0] - 2026-07-05
 
 ### Added
@@ -59,7 +70,6 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [0.2.0] - 2026-07-05
 
 ### Added
-- Plan de desarrollo (`DEVELOPMENT_PLAN.md`).
 - Clase `FSLVersion` y propiedad `FSL.Version` para consultar la versión en tiempo de ejecución.
 - Metadatos de versión y paquete en `NetcoreFSL.csproj` (`PackageId`, `Authors`, licencia MIT).
 - `NetcoreTEST` parametrizable por CLI y variables de entorno.
@@ -85,7 +95,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...v0.4.0

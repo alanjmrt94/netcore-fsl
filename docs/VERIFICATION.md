@@ -76,4 +76,4 @@ Alternativas si desea eliminar el aviso:
 dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release
 ```
 
-Genera `NetcoreFSL.1.0.0.nupkg` en `NetcoreFSL/bin/Release/`.
+Genera `NetcoreFSL.1.0.1.nupkg` en `NetcoreFSL/bin/Release/`.

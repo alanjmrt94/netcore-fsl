@@ -8,18 +8,18 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Versión de la biblioteca (SemVer) — fuente única de verdad -->
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <InformationalVersion>1.0.1</InformationalVersion>
 
     <!-- Metadatos del paquete -->
     <PackageId>NetcoreFSL</PackageId>
     <Authors>Alan Javier Martinez</Authors>
     <Company>Alan Javier Martinez</Company>
     <Product>NetcoreFSL</Product>
-    <Description>Cross-platform, multi-threaded file and directory search library for .NET.</Description>
-    <Copyright>Copyright (c) 2021 Alan Javier Martinez</Copyright>
+    <Description>Cross-platform, multi-threaded file and directory search library for .NET 8.</Description>
+    <Copyright>Copyright (c) 2021-2026 Alan Javier Martinez</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/alanjmrt94/netcore-fsl</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alanjmrt94/netcore-fsl</RepositoryUrl>

@@ -1,6 +1,6 @@
 # NetcoreFSL
 
-**Versión:** `1.0.0` · **Estado:** estable (Fases 0–5)  
+**Versión:** `1.0.1` · **Estado:** estable (Fases 0–5)  
 **aka:** NetCore FastSearchLibrary
 
 Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que permite buscar archivos y directorios en el sistema de archivos mediante patrones, con API basada en eventos.
@@ -16,7 +16,7 @@ Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que perm
 
 ## Requisitos
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior (ver `global.json` para versión mínima)
 
 ## Instalación
 
@@ -68,7 +68,7 @@ fsl.FileSearch();
 
 | Miembro | Descripción |
 |---------|-------------|
-| `FSL.Version` | Versión semántica (`1.0.0`) |
+| `FSL.Version` | Versión semántica (`1.0.1`) |
 | `FSL(handler, folder, pattern)` | Constructor |
 | `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación |
 | `FileSearch()` | Búsqueda recursiva de archivos |
@@ -173,15 +173,14 @@ netcore-fsl/
 ├── NetcoreFSL.Tests/    # Tests xUnit (15 pruebas)
 ├── NetcoreTEST/         # Consola de prueba manual
 ├── docs/VERIFICATION.md # Verificación .NET 8
-├── CHANGELOG.md
-└── DEVELOPMENT_PLAN.md
+└── CHANGELOG.md
 ```
 
 ## Versión en tiempo de ejecución
 
 ```csharp
-Console.WriteLine(FSL.Version);        // "1.0.0"
-Console.WriteLine(FSLVersion.Current); // "1.0.0"
+Console.WriteLine(FSL.Version);        // "1.0.1"
+Console.WriteLine(FSLVersion.Current); // "1.0.1"
 ```
 
 Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
@@ -192,13 +191,12 @@ Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
 
 | Versión | Hito |
 |---------|------|
+| `1.0.1` | Tooling, licencia y configuración de entorno |
 | `1.0.0` | Release estable — Fases 0–5 |
 | `0.5.0` | Tests y migración .NET 8 |
 | `0.4.0` | Búsqueda de carpetas |
 | `0.3.0` | API de ciclo de vida |
 
-Plan completo: [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md).
-
 ## Licencia
 
-[MIT](LICENSE) — Copyright (c) 2021 Alan Javier Martinez
+[MIT](LICENSE) — Copyright (c) 2021-2026 Alan Javier Martinez
