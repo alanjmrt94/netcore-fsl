@@ -19,7 +19,16 @@ El repositorio usa [GitHub Actions](https://docs.github.com/en/actions) para bui
 
 1. Asegurar que `<Version>` en `NetcoreFSL/NetcoreFSL.csproj` coincide con el tag (sin prefijo `v`).
 2. Actualizar `CHANGELOG.md` con la entrada de la versión.
-3. En GitHub → **Settings** → **Secrets and variables** → **Actions**, crear `NUGET_API_KEY` con una API key de [nuget.org](https://www.nuget.org/account/apikeys).
+3. En GitHub → **Settings** → **Secrets and variables** → **Actions**, crear `NUGET_API_KEY` (para el workflow `release.yml` en CI).
+
+   Para publicar **desde tu máquina** con `scripts/release.sh`, use un archivo `.env` en la raíz del repo (no versionado):
+
+```bash
+cp .env.example .env
+# Editar .env y pegar la API key de https://www.nuget.org/account/apikeys
+./scripts/release.sh --push-branch
+```
+
 4. Crear y pushear el tag:
 
 ```bash
@@ -34,7 +43,15 @@ El workflow `Release` empaqueta y sube `NetcoreFSL.<version>.nupkg`. `--skip-dup
 Alternativa al workflow de GitHub para publicar desde tu máquina en un solo paso:
 
 ```bash
-export NUGET_API_KEY="su-api-key"
+export NUGET_API_KEY="su-api-key"   # opcional si usa .env
+./scripts/release.sh --push-branch
+```
+
+O con `.env` (recomendado localmente):
+
+```bash
+cp .env.example .env
+# NUGET_API_KEY=... en .env
 ./scripts/release.sh --push-branch
 ```
 

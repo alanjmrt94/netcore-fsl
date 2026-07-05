@@ -6,7 +6,7 @@
 #   - .NET 8 SDK
 #   - git
 #   - gh (GitHub CLI), autenticado: gh auth login
-#   - Variable NUGET_API_KEY (API key de https://www.nuget.org/account/apikeys)
+#   - Variable NUGET_API_KEY en el entorno o en .env (ver .env.example)
 #
 # Uso:
 #   ./scripts/release.sh              # flujo completo (pide confirmación)
@@ -58,6 +58,36 @@ die() {
   printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2
   exit 1
 }
+
+load_dotenv() {
+  local env_file="$ROOT/.env"
+
+  if [[ ! -f "$env_file" ]]; then
+    return 0
+  fi
+
+  log "Cargando variables desde .env"
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+      local key="${BASH_REMATCH[1]}"
+      local value="${BASH_REMATCH[2]}"
+
+      if [[ "$value" =~ ^\".*\"$ ]]; then
+        value="${value:1:${#value}-2}"
+      elif [[ "$value" =~ ^\'.*\'$ ]]; then
+        value="${value:1:${#value}-2}"
+      fi
+
+      export "$key=$value"
+    fi
+  done <"$env_file"
+}
+
+load_dotenv
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -126,7 +156,7 @@ if ! $SKIP_GITHUB; then
 fi
 
 if ! $SKIP_NUGET && ! $DRY_RUN; then
-  [[ -n "${NUGET_API_KEY:-}" ]] || die "Defina NUGET_API_KEY para publicar en NuGet.org"
+  [[ -n "${NUGET_API_KEY:-}" ]] || die "Defina NUGET_API_KEY en .env o en el entorno (ver .env.example)"
 fi
 
 if ! $DRY_RUN; then

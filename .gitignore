@@ -19,6 +19,11 @@ Thumbs.db
 artifacts/
 *.binlog
 
+## Secretos locales (API keys, etc.)
+.env
+.env.local
+!.env.example
+
 ## Cursor (local, no versionado)
 .cursor/
 
