@@ -1,13 +1,17 @@
 using System.Security;
 using NetcoreFSL.Searcher.BaseClasses;
 using NetcoreFSL.Searcher.Enums;
+using NetcoreFSL.Searcher.Helpers;
 
 namespace NetcoreFSL.Searcher.Classes
 {
   internal class FilePatternSearch : SearcherBase
   {
+    private readonly string searchPattern;
+
     public FilePatternSearch(ExecuteHandlers handlerOption, string folder, string pattern = "") : base(handlerOption, folder, pattern)
     {
+      searchPattern = SearchPatternHelper.Normalize(pattern);
     }
 
     public override void StartSearch()
@@ -17,55 +21,47 @@ namespace NetcoreFSL.Searcher.Classes
 
     protected override void GetDrives()
     {
-      throw new NotImplementedException();
+      List<DriveInfo> drives = DriveInfo.GetDrives()
+        .Where(drive => drive.IsReady)
+        .ToList();
+
+      if (drives.Count > 0)
+      {
+        OnDrivesFound(drives);
+      }
     }
 
     protected override void GetFiles(string folder)
     {
+      try
+      {
+        FileInfo[] files = new DirectoryInfo(folder).GetFiles(searchPattern);
+
+        if (files.Length > 0)
+        {
+          OnFilesFound(files.ToList());
+        }
+      }
+      catch (Exception ex) when (
+        ex is PathTooLongException
+        or DirectoryNotFoundException
+        or SecurityException
+        or UnauthorizedAccessException
+        or IOException)
+      {
+      }
     }
 
     protected override List<DirectoryInfo> GetFolders(string folder)
     {
-      try
+      if (!TryEnumerateSubdirectories(folder, out DirectoryInfo[] subdirectories))
       {
-        DirectoryInfo dir = new(folder);
-        DirectoryInfo[] dirArr = dir.GetDirectories();
+        return new List<DirectoryInfo>();
+      }
 
-        if (dirArr.Length > 1)
-        {
-          Console.WriteLine("Listing dirs in " + dir.FullName);
-          foreach (DirectoryInfo dirEnum in dirArr)
-          {
-            Console.WriteLine("->" + dirEnum.Name);
-          }
-          return new List<DirectoryInfo>(dirArr);
-        }
-        else
-        {
-          Console.WriteLine("Listing dirs in " + dir.FullName + "\n->EMPTY<-");
-          return new List<DirectoryInfo>();
-        }
-      }
-      catch (PathTooLongException ex)
-      {
-        Console.WriteLine(ex);
-        return new List<DirectoryInfo>();
-      }
-      catch (DirectoryNotFoundException ex)
-      {
-        Console.WriteLine(ex);
-        return new List<DirectoryInfo>();
-      }
-      catch (SecurityException ex)
-      {
-        Console.WriteLine(ex);
-        return new List<DirectoryInfo>();
-      }
-      catch (UnauthorizedAccessException ex)
-      {
-        Console.WriteLine(ex);
-        return new List<DirectoryInfo>();
-      }
+      return subdirectories.Length > 0
+        ? subdirectories.ToList()
+        : new List<DirectoryInfo>();
     }
   }
 }

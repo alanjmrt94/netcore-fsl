@@ -18,6 +18,22 @@ string mode = args.Length > 2
 
 FSL fsl = new(ExecuteHandlers.InCurrentTask, folder, pattern);
 
+int matchCount = 0;
+
+fsl.FilesFound += (_, e) =>
+{
+  matchCount += e.Files.Count;
+  foreach (var file in e.Files)
+  {
+    Console.WriteLine(file.FullName);
+  }
+};
+
+fsl.SearchCompleted += (_, e) =>
+{
+  Console.WriteLine($"Search completed: {e.IsCompleted}, matches: {matchCount}");
+};
+
 Console.WriteLine($"NetcoreFSL v{FSL.Version}");
 Console.WriteLine($"Running TEST... folder={folder}, pattern={pattern}, mode={mode}");
 

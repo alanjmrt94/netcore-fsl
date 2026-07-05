@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Security;
 using NetcoreFSL.Searcher.Enums;
 using NetcoreFSL.Searcher.Events;
 
@@ -5,16 +7,21 @@ namespace NetcoreFSL.Searcher.BaseClasses
 {
   internal abstract class SearcherBase
   {
+    private readonly object eventLock = new();
+    private readonly ConcurrentDictionary<string, byte> visitedDirectories = new();
+    private readonly SemaphoreSlim concurrencyLimit;
+
     protected ExecuteHandlers HandlerOption { get; set; }
 
     protected string folder;
     protected string pattern;
 
-    public SearcherBase(ExecuteHandlers handlerOption, string folder, string pattern = "")
+    protected SearcherBase(ExecuteHandlers handlerOption, string folder, string pattern = "")
     {
       HandlerOption = handlerOption;
       this.folder = folder;
       this.pattern = pattern;
+      concurrencyLimit = new SemaphoreSlim(Math.Max(1, Environment.ProcessorCount));
     }
 
     public event EventHandler<DriveEventArgs> DrivesFound;
@@ -34,55 +41,144 @@ namespace NetcoreFSL.Searcher.BaseClasses
 
     protected virtual void OnDrivesFound(List<DriveInfo> drives)
     {
-      DrivesFound?.Invoke(this, new DriveEventArgs(drives));
+      InvokeEvent(DrivesFound, new DriveEventArgs(drives));
     }
 
     protected virtual void OnFilesFound(List<FileInfo> files)
     {
-      FilesFound?.Invoke(this, new FileEventArgs(files));
+      InvokeEvent(FilesFound, new FileEventArgs(files));
     }
 
     protected virtual void OnFoldersFound(List<DirectoryInfo> folders)
     {
-      FoldersFound?.Invoke(this, new FolderEventArgs(folders));
+      InvokeEvent(FoldersFound, new FolderEventArgs(folders));
     }
 
     protected virtual void OnSearchCanceled(bool isCanceled)
     {
-      SearchCanceled?.Invoke(this, new SearchCanceledEventArgs(isCanceled));
+      InvokeEvent(SearchCanceled, new SearchCanceledEventArgs(isCanceled));
     }
 
     protected virtual void OnSearchCompleted(bool isCompleted)
     {
-      SearchCompleted?.Invoke(this, new SearchCompletedEventArgs(isCompleted));
+      InvokeEvent(SearchCompleted, new SearchCompletedEventArgs(isCompleted));
     }
 
     protected virtual void OnSearchPaused(bool isPaused)
     {
-      SearchPaused?.Invoke(this, new SearchPausedEventArgs(isPaused));
+      InvokeEvent(SearchPaused, new SearchPausedEventArgs(isPaused));
     }
 
     protected virtual void OnSearchResumed(bool isResumed)
     {
-      SearchResumed?.Invoke(this, new SearchResumedEventArgs(isResumed));
+      InvokeEvent(SearchResumed, new SearchResumedEventArgs(isResumed));
     }
 
-    //TODO: COMPLETE FUNCTION
+    protected virtual bool ShouldSearchAllDrives()
+    {
+      return string.IsNullOrWhiteSpace(folder) || folder == "*" || folder == "/";
+    }
+
     protected virtual void RunFSL()
     {
-      Console.WriteLine("Called function: RunFSL() in SearcherBase class.");
+      bool completed = false;
 
-      List<DirectoryInfo> startDirs = GetFolders(folder);
-
-      startDirs.AsParallel().ForAll((dir) =>
+      try
       {
-        GetFolders(dir.FullName).AsParallel().ForAll((dir) =>
-        {
-          GetFiles(dir.FullName);
-        });
-      });
+        IEnumerable<string> roots = GetSearchRoots();
 
-      //OnSearchCompleted(false);
+        Parallel.ForEach(
+          roots,
+          new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount) },
+          root => SearchDirectoryRecursive(root));
+
+        completed = true;
+      }
+      finally
+      {
+        OnSearchCompleted(completed);
+      }
+    }
+
+    protected IEnumerable<string> GetSearchRoots()
+    {
+      if (ShouldSearchAllDrives())
+      {
+        GetDrives();
+
+        return DriveInfo.GetDrives()
+          .Where(drive => drive.IsReady)
+          .Select(drive => drive.RootDirectory.FullName);
+      }
+
+      return new[] { Path.GetFullPath(folder) };
+    }
+
+    protected bool TryEnumerateSubdirectories(string path, out DirectoryInfo[] subdirectories)
+    {
+      subdirectories = Array.Empty<DirectoryInfo>();
+
+      try
+      {
+        subdirectories = new DirectoryInfo(path).GetDirectories();
+        return true;
+      }
+      catch (Exception ex) when (
+        ex is PathTooLongException
+        or DirectoryNotFoundException
+        or SecurityException
+        or UnauthorizedAccessException
+        or IOException)
+      {
+        return false;
+      }
+    }
+
+    private void SearchDirectoryRecursive(string directoryPath)
+    {
+      concurrencyLimit.Wait();
+
+      try
+      {
+        string fullPath = Path.GetFullPath(directoryPath);
+
+        if (!visitedDirectories.TryAdd(fullPath, 0))
+        {
+          return;
+        }
+
+        GetFiles(fullPath);
+
+        if (!TryEnumerateSubdirectories(fullPath, out DirectoryInfo[] subdirectories))
+        {
+          return;
+        }
+
+        Parallel.ForEach(
+          subdirectories,
+          new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount) },
+          subdirectory => SearchDirectoryRecursive(subdirectory.FullName));
+      }
+      finally
+      {
+        concurrencyLimit.Release();
+      }
+    }
+
+    private void InvokeEvent<TEventArgs>(EventHandler<TEventArgs> handler, TEventArgs args)
+      where TEventArgs : EventArgs
+    {
+      EventHandler<TEventArgs> subscribers = handler;
+
+      if (subscribers == null)
+      {
+        return;
+      }
+
+      lock (eventLock)
+      {
+        subscribers.Invoke(this, args);
+      }
     }
   }
 }

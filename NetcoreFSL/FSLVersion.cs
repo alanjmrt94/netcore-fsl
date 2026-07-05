@@ -14,14 +14,14 @@ namespace NetcoreFSL
     /// <summary>Alias público del producto.</summary>
     public const string ProductAlias = "NetCore FastSearchLibrary";
 
-    /// <summary>Versión semántica actual (p. ej. <c>0.1.0</c>).</summary>
+    /// <summary>Versión semántica actual (p. ej. <c>0.2.0</c>).</summary>
     public static string Current =>
       Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
       ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
       ?? "0.0.0";
 
-    /// <summary>Versión del ensamblado (p. ej. <c>0.1.0.0</c>).</summary>
+    /// <summary>Versión del ensamblado (p. ej. <c>0.2.0.0</c>).</summary>
     public static System.Version AssemblyVersion =>
       Assembly.GetExecutingAssembly().GetName().Version ?? new System.Version(0, 0, 0, 0);
   }
