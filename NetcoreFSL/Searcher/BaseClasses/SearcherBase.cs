@@ -31,12 +31,24 @@ namespace NetcoreFSL.Searcher.BaseClasses
 
     protected abstract void GetDrives();
     protected abstract void GetFiles(string folder);
-    protected abstract void GetFolders(string folder);
+    protected abstract List<DirectoryInfo> GetFolders(string folder);
 
     //TODO: COMPLETE FUNCTION
     protected virtual void RunFSL()
     {
       Console.WriteLine("Called function: RunFSL() in SearcherBase class.");
+
+      List<DirectoryInfo> startDirs = GetFolders(folder);
+
+      startDirs.AsParallel().ForAll((dir) =>
+      {
+        GetFolders(dir.FullName).AsParallel().ForAll((dir) =>
+              {
+                GetFiles(dir.FullName);
+              });
+      });
+
+      //OnSearchCompleted(false);
     }
   }
 }
