@@ -7,6 +7,13 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-07-05
+
+### Added
+- GitHub Actions: workflow `CI` (restore, build, test, pack) en push/PR a `master`/`main`.
+- Workflow `Release` para publicar en NuGet.org al pushear tags `v*.*.*`.
+- `docs/CI.md` con instrucciones de badge, secrets y publicación.
+
 ## [1.0.2] - 2026-07-05
 
 ### Added
@@ -101,7 +108,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...v1.0.0

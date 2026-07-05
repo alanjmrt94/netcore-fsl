@@ -1,0 +1,37 @@
+name: Release
+
+# Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.2).
+# Requiere el secret del repositorio: NUGET_API_KEY
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-nuget:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore NetcoreFSL/NetcoreFSL.csproj
+
+      - name: Pack
+        run: dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release -o ./artifacts
+
+      - name: Push to NuGet.org
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

@@ -1,6 +1,8 @@
 # NetcoreFSL
 
-**Versión:** `1.0.2` · **Estado:** estable (Fases 0–5)  
+![CI](https://github.com/alanjmrt94/netcore-fsl/actions/workflows/ci.yml/badge.svg?branch=master)
+
+**Versión:** `1.0.3` · **Estado:** estable (Fases 0–6)  
 **aka:** NetCore FastSearchLibrary
 
 Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que permite buscar archivos y directorios en el sistema de archivos mediante patrones, con API basada en eventos.
@@ -12,7 +14,7 @@ Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que perm
 - Ejecución síncrona o en segundo plano (`ExecuteHandlers`)
 - **Cancelación**, pausa y reanudación
 - Paralelismo acotado y seguro entre hilos
-- **15 tests automatizados** (xUnit), verificados en .NET 8
+- **21 tests automatizados** (xUnit), verificados en .NET 8 y en CI (GitHub Actions)
 
 ## Requisitos
 
@@ -36,11 +38,15 @@ En su `.csproj`:
 </ItemGroup>
 ```
 
-### Paquete NuGet (cuando esté publicado)
+### Paquete NuGet
+
+Tras publicar un release (tag `v*.*.*` + secret `NUGET_API_KEY` en GitHub), instale con:
 
 ```bash
 dotnet add package NetcoreFSL
 ```
+
+Instrucciones para mantenedores: [docs/CI.md](docs/CI.md).
 
 ## Inicio rápido
 
@@ -68,7 +74,7 @@ fsl.FileSearch();
 
 | Miembro | Descripción |
 |---------|-------------|
-| `FSL.Version` | Versión semántica (`1.0.2`) |
+| `FSL.Version` | Versión semántica (`1.0.3`) |
 | `FSL(handler, folder, pattern)` | Constructor |
 | `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación |
 | `FileSearch()` | Búsqueda recursiva de archivos |
@@ -141,7 +147,9 @@ fsl.FileSearch(); // retorna de inmediato
 dotnet test netcore-fsl.sln -c Release
 ```
 
-**Resultado verificado:** 15/15 pruebas OK, 0 errores, 0 warnings (Release).
+**Resultado verificado:** 21/21 pruebas OK, 0 errores, 0 warnings (Release).
+
+CI en cada push/PR: ver badge arriba y [docs/CI.md](docs/CI.md).
 
 Detalle en [docs/VERIFICATION.md](docs/VERIFICATION.md).
 
@@ -172,15 +180,17 @@ netcore-fsl/
 ├── NetcoreFSL/          # Biblioteca principal
 ├── NetcoreFSL.Tests/    # Tests xUnit (21 pruebas)
 ├── NetcoreTEST/         # Consola de prueba manual
-├── docs/VERIFICATION.md # Verificación .NET 8
+├── docs/
+│   ├── VERIFICATION.md  # Verificación .NET 8
+│   └── CI.md            # GitHub Actions y publicación NuGet
 └── CHANGELOG.md
 ```
 
 ## Versión en tiempo de ejecución
 
 ```csharp
-Console.WriteLine(FSL.Version);        // "1.0.2"
-Console.WriteLine(FSLVersion.Current); // "1.0.2"
+Console.WriteLine(FSL.Version);        // "1.0.3"
+Console.WriteLine(FSLVersion.Current); // "1.0.3"
 ```
 
 Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
@@ -191,6 +201,7 @@ Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
 
 | Versión | Hito |
 |---------|------|
+| `1.0.3` | GitHub Actions CI y pipeline de publicación NuGet |
 | `1.0.2` | Pausa/reanudación, rutas largas Windows, fix deadlock |
 | `1.0.1` | Tooling, licencia y configuración de entorno |
 | `1.0.0` | Release estable — Fases 0–5 |

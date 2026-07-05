@@ -78,4 +78,8 @@ Alternativas si desea eliminar el aviso:
 dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release
 ```
 
-Genera `NetcoreFSL.1.0.2.nupkg` en `NetcoreFSL/bin/Release/`.
+Genera `NetcoreFSL.1.0.3.nupkg` en `NetcoreFSL/bin/Release/`.
+
+## Integración continua
+
+GitHub Actions ejecuta el mismo flujo en cada push/PR a `master`/`main`. Ver [docs/CI.md](CI.md).
