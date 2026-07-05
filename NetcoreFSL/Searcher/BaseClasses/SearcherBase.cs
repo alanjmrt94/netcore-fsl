@@ -1,4 +1,3 @@
-#pragma warning disable CS0067
 using NetcoreFSL.Searcher.Enums;
 using NetcoreFSL.Searcher.Events;
 
@@ -33,6 +32,41 @@ namespace NetcoreFSL.Searcher.BaseClasses
     protected abstract void GetFiles(string folder);
     protected abstract List<DirectoryInfo> GetFolders(string folder);
 
+    protected virtual void OnDrivesFound(List<DriveInfo> drives)
+    {
+      DrivesFound?.Invoke(this, new DriveEventArgs(drives));
+    }
+
+    protected virtual void OnFilesFound(List<FileInfo> files)
+    {
+      FilesFound?.Invoke(this, new FileEventArgs(files));
+    }
+
+    protected virtual void OnFoldersFound(List<DirectoryInfo> folders)
+    {
+      FoldersFound?.Invoke(this, new FolderEventArgs(folders));
+    }
+
+    protected virtual void OnSearchCanceled(bool isCanceled)
+    {
+      SearchCanceled?.Invoke(this, new SearchCanceledEventArgs(isCanceled));
+    }
+
+    protected virtual void OnSearchCompleted(bool isCompleted)
+    {
+      SearchCompleted?.Invoke(this, new SearchCompletedEventArgs(isCompleted));
+    }
+
+    protected virtual void OnSearchPaused(bool isPaused)
+    {
+      SearchPaused?.Invoke(this, new SearchPausedEventArgs(isPaused));
+    }
+
+    protected virtual void OnSearchResumed(bool isResumed)
+    {
+      SearchResumed?.Invoke(this, new SearchResumedEventArgs(isResumed));
+    }
+
     //TODO: COMPLETE FUNCTION
     protected virtual void RunFSL()
     {
@@ -43,9 +77,9 @@ namespace NetcoreFSL.Searcher.BaseClasses
       startDirs.AsParallel().ForAll((dir) =>
       {
         GetFolders(dir.FullName).AsParallel().ForAll((dir) =>
-              {
-                GetFiles(dir.FullName);
-              });
+        {
+          GetFiles(dir.FullName);
+        });
       });
 
       //OnSearchCompleted(false);

@@ -1,4 +1,3 @@
-using System.Security;
 using NetcoreFSL.Searcher.BaseClasses;
 using NetcoreFSL.Searcher.Enums;
 

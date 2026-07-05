@@ -6,11 +6,8 @@ namespace NetcoreFSL.Searcher.Classes
 {
   internal class FilePatternSearch : SearcherBase
   {
-    //private string pattern;
-
     public FilePatternSearch(ExecuteHandlers handlerOption, string folder, string pattern = "") : base(handlerOption, folder, pattern)
     {
-      //this.pattern = pattern;
     }
 
     public override void StartSearch()
@@ -25,7 +22,6 @@ namespace NetcoreFSL.Searcher.Classes
 
     protected override void GetFiles(string folder)
     {
-      // throw new NotImplementedException();
     }
 
     protected override List<DirectoryInfo> GetFolders(string folder)
@@ -34,13 +30,6 @@ namespace NetcoreFSL.Searcher.Classes
       {
         DirectoryInfo dir = new(folder);
         DirectoryInfo[] dirArr = dir.GetDirectories();
-
-        //Console.WriteLine("Pattern: " + pattern);
-        //FileInfo[] files = dir.GetFiles(pattern);
-        //if (files.Length > 0)
-        //{
-        //  OnFilesFound(files.ToList());
-        //}
 
         if (dirArr.Length > 1)
         {

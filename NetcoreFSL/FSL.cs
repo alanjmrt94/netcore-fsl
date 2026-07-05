@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using NetcoreFSL.Searcher.BaseClasses;
 using NetcoreFSL.Searcher.Classes;
 using NetcoreFSL.Searcher.Enums;
@@ -7,6 +6,9 @@ namespace NetcoreFSL
 {
   public class FSL
   {
+    /// <summary>Versión semántica de la biblioteca (p. ej. <c>0.1.0</c>).</summary>
+    public static string Version => FSLVersion.Current;
+
     private readonly ExecuteHandlers HandlerOption;
     private readonly string folder;
     private readonly string pattern;
