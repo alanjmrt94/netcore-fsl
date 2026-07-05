@@ -1,7 +1,14 @@
 name: Release
 
-# Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.2).
-# Requiere el secret del repositorio: NUGET_API_KEY
+# Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.5).
+#
+# Environment "nuget-publish" (Settings → Environments):
+#   NUGET_USER              — username nuget.org (Trusted Publishing)
+#   EMZAPPS_SNK             — (opcional) strong-name .snk en base64
+#   NUGET_SIGN_CERT_PFX     — (opcional) certificado Authenticode .pfx en base64
+#   NUGET_SIGN_CERT_PASSWORD — (opcional) contraseña del .pfx
+#
+# Sin certificado: el .nupkg se publica sin Author Signing; nuget.org aplica Repository Signing.
 on:
   push:
     tags:
@@ -10,12 +17,14 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-permissions:
-  contents: read
-
 jobs:
   publish-nuget:
     runs-on: ubuntu-latest
+    environment: nuget-publish
+
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -26,15 +35,85 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Setup NuGet CLI
+        uses: nuget/setup-nuget@v2
+        with:
+          nuget-version: 6.x
+
+      - name: Prepare signing keys
+        id: prepare
+        shell: pwsh
+        env:
+          EMZAPPS_SNK: ${{ secrets.EMZAPPS_SNK }}
+          NUGET_SIGN_CERT_PFX: ${{ secrets.NUGET_SIGN_CERT_PFX }}
+        run: |
+          $officialBuild = 'false'
+          if (-not [string]::IsNullOrWhiteSpace($env:EMZAPPS_SNK)) {
+            $snkPath = Join-Path $env:GITHUB_WORKSPACE 'NetcoreFSL/EMZApps.snk'
+            [IO.File]::WriteAllBytes($snkPath, [Convert]::FromBase64String($env:EMZAPPS_SNK))
+            $officialBuild = 'true'
+            Write-Host 'Strong-name: habilitado (EMZApps.snk presente).'
+          } else {
+            Write-Host 'Strong-name: omitido (sin EMZAPPS_SNK).'
+          }
+          "official_build=$officialBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          if (-not [string]::IsNullOrWhiteSpace($env:NUGET_SIGN_CERT_PFX)) {
+            $pfxPath = Join-Path $env:GITHUB_WORKSPACE 'nuget-sign.pfx'
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:NUGET_SIGN_CERT_PFX))
+            'author_sign=true' | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            Write-Host 'Author Signing: habilitado (certificado presente).'
+          } else {
+            'author_sign=false' | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            Write-Host 'Author Signing: omitido. nuget.org aplicará Repository Signing.'
+          }
+
       - name: Restore
         run: dotnet restore NetcoreFSL/NetcoreFSL.csproj
 
+      - name: Build Release
+        run: dotnet build NetcoreFSL/NetcoreFSL.csproj -c Release --no-restore -p:OfficialBuild=${{ steps.prepare.outputs.official_build }}
+
       - name: Pack
-        run: dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release -o ./artifacts
+        run: dotnet pack NetcoreFSL/NetcoreFSL.csproj -c Release --no-build -o ./artifacts -p:OfficialBuild=${{ steps.prepare.outputs.official_build }}
+
+      - name: Sign NuGet package (Author / Authenticode)
+        if: steps.prepare.outputs.author_sign == 'true'
+        shell: pwsh
+        env:
+          NUGET_SIGN_CERT_PASSWORD: ${{ secrets.NUGET_SIGN_CERT_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_SIGN_CERT_PASSWORD)) {
+            throw 'NUGET_SIGN_CERT_PFX está definido pero falta NUGET_SIGN_CERT_PASSWORD.'
+          }
+
+          $nupkg = Get-ChildItem artifacts/*.nupkg | Select-Object -First 1
+          if (-not $nupkg) { throw 'No se generó ningún .nupkg.' }
+
+          nuget sign $nupkg.FullName `
+            -CertificatePath "$env:GITHUB_WORKSPACE/nuget-sign.pfx" `
+            -CertificatePassword "$env:NUGET_SIGN_CERT_PASSWORD" `
+            -Timestamper http://timestamp.digicert.com `
+            -TimestampHashAlgorithm SHA256 `
+            -HashAlgorithm SHA256 `
+            -NonInteractive
+
+      - name: Verify NuGet Author signature
+        if: steps.prepare.outputs.author_sign == 'true'
+        shell: pwsh
+        run: |
+          $nupkg = Get-ChildItem artifacts/*.nupkg | Select-Object -First 1
+          nuget verify -Signatures $nupkg.FullName
+
+      - name: NuGet login (Trusted Publishing)
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: ${{ secrets.NUGET_USER }}
 
       - name: Push to NuGet.org
         run: |
           dotnet nuget push ./artifacts/*.nupkg \
-            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate

@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/alanjmrt94/netcore-fsl/actions/workflows/ci.yml/badge.svg?branch=master)
 
-**Versión:** `1.0.3` · **Estado:** estable (Fases 0–6)  
+**Versión:** `1.0.5` · **Estado:** estable (Fases 0–6)  
 **aka:** NetCore FastSearchLibrary
 
 Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que permite buscar archivos y directorios en el sistema de archivos mediante patrones, con API basada en eventos.
@@ -40,13 +40,21 @@ En su `.csproj`:
 
 ### Paquete NuGet
 
-Tras publicar un release (tag `v*.*.*` + secret `NUGET_API_KEY` en GitHub), instale con:
+Tras publicar un release (tag `v*.*.*`), instale con:
 
 ```bash
 dotnet add package NetcoreFSL
 ```
 
-Instrucciones para mantenedores: [docs/CI.md](docs/CI.md). Script todo-en-uno: `./scripts/release.sh`.
+> **Firma:** Solo `release.yml` firma el paquete publicado en NuGet (secrets en `nuget-publish`). Los builds locales no están firmados.
+
+Instrucciones para mantenedores: [docs/CI.md](docs/CI.md).
+
+**Release:**
+
+```bash
+./scripts/release.sh --push-branch
+```
 
 ## Inicio rápido
 
@@ -74,7 +82,7 @@ fsl.FileSearch();
 
 | Miembro | Descripción |
 |---------|-------------|
-| `FSL.Version` | Versión semántica (`1.0.3`) |
+| `FSL.Version` | Versión semántica (`1.0.5`) |
 | `FSL(handler, folder, pattern)` | Constructor |
 | `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación |
 | `FileSearch()` | Búsqueda recursiva de archivos |
@@ -191,8 +199,8 @@ netcore-fsl/
 ## Versión en tiempo de ejecución
 
 ```csharp
-Console.WriteLine(FSL.Version);        // "1.0.3"
-Console.WriteLine(FSLVersion.Current); // "1.0.3"
+Console.WriteLine(FSL.Version);        // "1.0.5"
+Console.WriteLine(FSLVersion.Current); // "1.0.5"
 ```
 
 Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
@@ -203,6 +211,7 @@ Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
 
 | Versión | Hito |
 |---------|------|
+| `1.0.5` | Firma strong-name/Author Signing, Trusted Publishing, release pipeline |
 | `1.0.3` | GitHub Actions CI y pipeline de publicación NuGet |
 | `1.0.2` | Pausa/reanudación, rutas largas Windows, fix deadlock |
 | `1.0.1` | Tooling, licencia y configuración de entorno |

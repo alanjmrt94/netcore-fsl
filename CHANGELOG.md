@@ -7,6 +7,21 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-07-05
+
+### Added
+- Firma strong-name opcional con `EMZApps.snk` (`OfficialBuild=true`, mismo token que NETFastSearchLibrary).
+- Author Signing opcional del `.nupkg` (Authenticode) en `release.yml`.
+- NuGet Trusted Publishing (`NuGet/login@v1`) y environment `nuget-publish` en GitHub.
+
+### Changed
+- GitHub Actions: acciones `@v5` (Node 24) y `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+- `release.sh`: solo build local + tag + GitHub Release; NuGet vía CI (Trusted Publishing).
+- `InternalsVisibleTo` condicional para builds con strong-name (solo en CI).
+
+### Removed
+- Publicación local con `NUGET_API_KEY` y `.env.example` (redundante con Trusted Publishing).
+
 ## [1.0.3] - 2026-07-05
 
 ### Added
@@ -109,7 +124,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.3...v1.0.5
 [1.0.3]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...v1.0.1

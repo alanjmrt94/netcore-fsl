@@ -8,10 +8,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Versión de la biblioteca (SemVer) — fuente única de verdad -->
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <FileVersion>1.0.3.0</FileVersion>
-    <InformationalVersion>1.0.3</InformationalVersion>
+    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
+    <InformationalVersion>1.0.5</InformationalVersion>
 
     <!-- Metadatos del paquete -->
     <PackageId>NetcoreFSL</PackageId>
@@ -27,6 +27,20 @@
     <PackageTags>filesystem;search;files;directories;multithreaded</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <!-- Strong-name solo en builds oficiales (CI / release). Ver docs/CI.md y EMZApps.snk en secrets. -->
+  <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>EMZApps.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <!-- Tests: friend assembly (condicional según strong-name). -->
+  <ItemGroup Condition="'$(OfficialBuild)' != 'true'">
+    <InternalsVisibleTo Include="NetcoreFSL.Tests" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(OfficialBuild)' == 'true'">
+    <InternalsVisibleTo Include="NetcoreFSL.Tests" PublicKey="0024000004800000400000000600000000000000004240285006800000000000000" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />

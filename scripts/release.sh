@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 #
-# Compila, empaqueta y publica NetcoreFSL en NuGet.org y GitHub Releases.
+# Release de NetcoreFSL:
+#   1. Compilar, probar y empaquetar (Release) en local
+#   2. Crear tag git, push y GitHub Release (adjunta el .nupkg)
+#   3. NuGet.org vía Trusted Publishing (release.yml al recibir el tag)
 #
 # Requisitos:
 #   - .NET 8 SDK
-#   - git
-#   - gh (GitHub CLI), autenticado: gh auth login
-#   - Variable NUGET_API_KEY en el entorno o en .env (ver .env.example)
+#   - git (árbol limpio salvo en --dry-run)
+#   - gh autenticado (gh auth login) — salvo --skip-github
+#   - Environment nuget-publish en GitHub (NUGET_USER) + Trusted Publishing en nuget.org
 #
 # Uso:
-#   ./scripts/release.sh              # flujo completo (pide confirmación)
-#   ./scripts/release.sh --dry-run    # solo build, test y pack local
-#   ./scripts/release.sh --skip-nuget # tag + release en GitHub, sin NuGet
+#   ./scripts/release.sh               # build + tag + GitHub Release → CI publica en NuGet
+#   ./scripts/release.sh --dry-run     # solo build, test y pack local
+#   ./scripts/release.sh --skip-github # solo build/pack (sin tag ni Release)
+#   ./scripts/release.sh --push-branch # push de rama antes del tag
 #   ./scripts/release.sh --help
 
 set -euo pipefail
@@ -25,25 +29,21 @@ ARTIFACTS_DIR="$ROOT/artifacts"
 CONFIGURATION="Release"
 
 DRY_RUN=false
-SKIP_NUGET=false
 SKIP_GITHUB=false
 SKIP_TESTS=false
 PUSH_BRANCH=false
 ASSUME_YES=false
 
-NUGET_SOURCE="https://api.nuget.org/v3/index.json"
-
 usage() {
   sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
   echo ""
   echo "Opciones:"
-  echo "  --dry-run        Compila, prueba y empaqueta sin publicar"
-  echo "  --skip-nuget     Omite la publicación en NuGet.org"
-  echo "  --skip-github    Omite tag y release en GitHub"
-  echo "  --skip-tests     Omite dotnet test"
-  echo "  --push-branch    Hace push de la rama actual antes del tag"
-  echo "  --yes, -y        No pedir confirmación interactiva"
-  echo "  --help, -h       Muestra esta ayuda"
+  echo "  --dry-run      Solo compila, prueba y empaqueta (sin tag ni Release)"
+  echo "  --skip-github  Omite tag y GitHub Release"
+  echo "  --skip-tests   Omite dotnet test"
+  echo "  --push-branch  Push de la rama actual antes de crear el tag"
+  echo "  --yes, -y      Sin confirmación interactiva"
+  echo "  --help, -h     Muestra esta ayuda"
 }
 
 log() {
@@ -59,40 +59,9 @@ die() {
   exit 1
 }
 
-load_dotenv() {
-  local env_file="$ROOT/.env"
-
-  if [[ ! -f "$env_file" ]]; then
-    return 0
-  fi
-
-  log "Cargando variables desde .env"
-
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    line="${line#"${line%%[![:space:]]*}"}"
-    [[ -z "$line" || "$line" == \#* ]] && continue
-
-    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-      local key="${BASH_REMATCH[1]}"
-      local value="${BASH_REMATCH[2]}"
-
-      if [[ "$value" =~ ^\".*\"$ ]]; then
-        value="${value:1:${#value}-2}"
-      elif [[ "$value" =~ ^\'.*\'$ ]]; then
-        value="${value:1:${#value}-2}"
-      fi
-
-      export "$key=$value"
-    fi
-  done <"$env_file"
-}
-
-load_dotenv
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --dry-run) DRY_RUN=true ;;
-    --skip-nuget) SKIP_NUGET=true ;;
+    --dry-run) DRY_RUN=true; SKIP_GITHUB=true ;;
     --skip-github) SKIP_GITHUB=true ;;
     --skip-tests) SKIP_TESTS=true ;;
     --push-branch) PUSH_BRANCH=true ;;
@@ -102,11 +71,6 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-
-if $DRY_RUN; then
-  SKIP_NUGET=true
-  SKIP_GITHUB=true
-fi
 
 read_version() {
   local version
@@ -155,10 +119,6 @@ if ! $SKIP_GITHUB; then
   gh auth status >/dev/null 2>&1 || die "GitHub CLI no autenticado. Ejecute: gh auth login"
 fi
 
-if ! $SKIP_NUGET && ! $DRY_RUN; then
-  [[ -n "${NUGET_API_KEY:-}" ]] || die "Defina NUGET_API_KEY en .env o en el entorno (ver .env.example)"
-fi
-
 if ! $DRY_RUN; then
   if [[ -n "$(git status --porcelain)" ]]; then
     die "El árbol de trabajo no está limpio. Commitee o descarte cambios antes de publicar."
@@ -172,7 +132,7 @@ if ! $DRY_RUN; then
     die "El tag $TAG ya existe en origin."
   fi
 else
-  warn "Modo dry-run: se omiten comprobaciones de git limpio y tags existentes."
+  warn "Modo dry-run: se omiten comprobaciones de git y publicación."
 fi
 
 CHANGELOG_NOTES="$(extract_changelog_section "$VERSION" || true)"
@@ -188,25 +148,27 @@ log "Rama: ${CURRENT_BRANCH:-detached}"
 [[ -n "$REMOTE_URL" ]] && log "Remoto: $REMOTE_URL"
 
 echo ""
-echo "Acciones previstas:"
-echo "  1. dotnet restore / build / $([ "$SKIP_TESTS" = true ] && echo '(sin tests)' || echo test) / pack"
-$SKIP_NUGET || echo "  2. Publicar $NUPKG en NuGet.org"
+echo "Pipeline de release:"
+echo "  1. Local: restore → build → $([ "$SKIP_TESTS" = true ] && echo '(sin tests)' || echo test) → pack"
 if ! $SKIP_GITHUB; then
-  echo "  3. Crear tag $TAG y release en GitHub"
-  $PUSH_BRANCH && echo "     (incluye push de la rama $CURRENT_BRANCH)"
+  echo "  2. GitHub: tag $TAG → push → Release (adjunta .nupkg)"
+  $PUSH_BRANCH && echo "     (incluye push previo de rama $CURRENT_BRANCH)"
+  echo "  3. CI: release.yml → NuGet/login (Trusted Publishing) → nuget.org"
+else
+  warn "Sin tag: NuGet.org no se publicará (Trusted Publishing requiere push del tag)."
 fi
 echo ""
 
 confirm "¿Continuar?" || die "Publicación cancelada."
 
-log "Restaurando dependencias..."
+log "[1/3] Restaurando dependencias..."
 dotnet restore "$SOLUTION"
 
-log "Compilando ($CONFIGURATION)..."
+log "[1/3] Compilando ($CONFIGURATION)..."
 dotnet build "$SOLUTION" -c "$CONFIGURATION" --no-restore
 
 if ! $SKIP_TESTS; then
-  log "Ejecutando tests..."
+  log "[1/3] Ejecutando tests..."
   dotnet test "$SOLUTION" -c "$CONFIGURATION" --no-build --verbosity normal
 else
   warn "Tests omitidos (--skip-tests)."
@@ -215,31 +177,22 @@ fi
 rm -rf "$ARTIFACTS_DIR"
 mkdir -p "$ARTIFACTS_DIR"
 
-log "Empaquetando..."
+log "[1/3] Empaquetando..."
 dotnet pack "$PROJECT" -c "$CONFIGURATION" --no-build -o "$ARTIFACTS_DIR"
 
 [[ -f "$NUPKG" ]] || die "No se generó el paquete esperado: $NUPKG"
 log "Paquete generado: $NUPKG"
 
-if ! $SKIP_NUGET; then
-  log "Publicando en NuGet.org..."
-  dotnet nuget push "$NUPKG" \
-    --api-key "$NUGET_API_KEY" \
-    --source "$NUGET_SOURCE" \
-    --skip-duplicate
-  log "NuGet.org: OK"
-fi
-
 if ! $SKIP_GITHUB; then
   if $PUSH_BRANCH; then
-    log "Push de rama $CURRENT_BRANCH..."
+    log "[2/3] Push de rama $CURRENT_BRANCH..."
     git push origin "HEAD:$CURRENT_BRANCH"
   fi
 
-  log "Creando tag anotado $TAG..."
+  log "[2/3] Creando tag anotado $TAG..."
   git tag -a "$TAG" -m "Release $TAG"
 
-  log "Push del tag..."
+  log "[2/3] Push del tag..."
   git push origin "$TAG"
 
   RELEASE_NOTES_FILE="$(mktemp)"
@@ -252,7 +205,7 @@ if ! $SKIP_GITHUB; then
     echo "Instalación: \`dotnet add package NetcoreFSL --version $VERSION\`"
   } >"$RELEASE_NOTES_FILE"
 
-  log "Creando GitHub Release..."
+  log "[2/3] Creando GitHub Release..."
   gh release create "$TAG" \
     "$NUPKG" \
     --title "NetcoreFSL $VERSION" \
@@ -260,10 +213,15 @@ if ! $SKIP_GITHUB; then
 
   rm -f "$RELEASE_NOTES_FILE"
   log "GitHub Release: OK"
+  log "[3/3] NuGet.org: release.yml (Trusted Publishing). Ver: gh run list --workflow=release.yml"
 fi
 
 echo ""
-log "Publicación completada ($TAG)."
 if $DRY_RUN; then
-  warn "Modo dry-run: no se publicó en NuGet ni en GitHub."
+  log "Dry-run completado ($TAG)."
+else
+  log "Release completado ($TAG)."
+  if ! $SKIP_GITHUB; then
+    log "El paquete firmado se publicará en NuGet.org vía GitHub Actions."
+  fi
 fi

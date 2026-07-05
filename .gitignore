@@ -19,10 +19,13 @@ Thumbs.db
 artifacts/
 *.binlog
 
-## Secretos locales (API keys, etc.)
+## Secretos locales (no versionar)
 .env
 .env.local
-!.env.example
+
+## Claves de firma (solo en CI via GitHub secrets)
+EMZApps.snk
+nuget-sign.pfx
 
 ## Cursor (local, no versionado)
 .cursor/
