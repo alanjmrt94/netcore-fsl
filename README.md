@@ -1,74 +1,48 @@
 # NetcoreFSL
 
-**Versión:** `0.5.0` · **Estado:** WIP — Fases 0–4 completadas  
+**Versión:** `1.0.0` · **Estado:** estable (Fases 0–5)  
 **aka:** NetCore FastSearchLibrary
 
-Biblioteca multiplataforma y multi-hilo para .NET 8, escrita en C#, que permite buscar archivos y directorios mediante patrones.
+Biblioteca multiplataforma y multi-hilo para **.NET 8**, escrita en C#, que permite buscar archivos y directorios en el sistema de archivos mediante patrones, con API basada en eventos.
 
-## Qué incluye esta versión
+## Características
 
-| Funcionalidad | Estado |
-|---------------|--------|
-| Búsqueda recursiva de archivos por patrón | Disponible |
-| Eventos de resultados y ciclo de vida | Disponible |
-| `ExecuteHandlers.InNewTask` (búsqueda en segundo plano) | Disponible |
-| `CancellationToken`, `CancelSearch()` | Disponible |
-| `PauseSearch()` / `ResumeSearch()` | Disponible |
-| Normalización de patrones de archivos (`.conf` → `*.conf`) | Disponible |
-| Búsqueda recursiva de carpetas por patrón (`FolderSearch`) | Disponible |
-| Normalización de patrones de carpetas (literal o comodín) | Disponible |
-| Tests automatizados (`NetcoreFSL.Tests`, xUnit) | Disponible |
+- Búsqueda recursiva de **archivos** y **carpetas** por patrón
+- API basada en **eventos** (`FilesFound`, `FoldersFound`, ciclo de vida)
+- Ejecución síncrona o en segundo plano (`ExecuteHandlers`)
+- **Cancelación**, pausa y reanudación
+- Paralelismo acotado y seguro entre hilos
+- **15 tests automatizados** (xUnit), verificados en .NET 8
 
-## API pública (`FSL`)
+## Requisitos
 
-| Miembro | Descripción |
-|---------|-------------|
-| `FSL.Version` | Versión semántica de la biblioteca |
-| `FSL(handler, folder, pattern)` | Constructor síncrono |
-| `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación externa |
-| `FileSearch()` | Inicia búsqueda de archivos |
-| `FolderSearch()` | Inicia búsqueda de carpetas por nombre |
-| `CancelSearch()` | Cancela la búsqueda en curso |
-| `PauseSearch()` | Pausa la búsqueda en curso |
-| `ResumeSearch()` | Reanuda la búsqueda pausada |
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior
 
-### Eventos
+## Instalación
 
-| Evento | Cuándo se dispara |
-|--------|-------------------|
-| `DrivesFound` | Al enumerar unidades (búsqueda en todas las drives) |
-| `FilesFound` | Al encontrar archivos que coinciden con el patrón |
-| `FoldersFound` | Al encontrar carpetas cuyo nombre coincide con el patrón |
-| `SearchCanceled` | Al cancelar la búsqueda |
-| `SearchCompleted` | Al finalizar (éxito o cancelación) |
-| `SearchPaused` | Al pausar |
-| `SearchResumed` | Al reanudar |
+### Referencia al proyecto (desarrollo)
 
-### `ExecuteHandlers`
-
-| Valor | Comportamiento |
-|-------|----------------|
-| `InCurrentTask` | `FileSearch()` / `FolderSearch()` bloquean el hilo llamador |
-| `InNewTask` | La búsqueda se ejecuta en `Task.Run` y retorna de inmediato |
-
-### Suscripciones y búsquedas múltiples
-
-- Los eventos se suscriben en la instancia `FSL` y **persisten** entre llamadas.
-- Cada nueva llamada a `FileSearch()` o `FolderSearch()` **cancela** la búsqueda anterior si sigue activa.
-- Se recomienda usar **instancias separadas** de `FSL` para búsquedas concurrentes independientes.
-
-## Versión en tiempo de ejecución
-
-```csharp
-using NetcoreFSL;
-
-Console.WriteLine(FSL.Version);        // "0.5.0"
-Console.WriteLine(FSLVersion.Current); // "0.5.0"
+```bash
+git clone https://github.com/alanjmrt94/netcore-fsl.git
+cd netcore-fsl
+dotnet build netcore-fsl.sln
 ```
 
-La versión se define en `NetcoreFSL/NetcoreFSL.csproj` y se expone en código mediante `FSL.Version` y `FSLVersion`.
+En su `.csproj`:
 
-## Uso básico
+```xml
+<ItemGroup>
+  <ProjectReference Include="ruta/a/netcore-fsl/NetcoreFSL/NetcoreFSL.csproj" />
+</ItemGroup>
+```
+
+### Paquete NuGet (cuando esté publicado)
+
+```bash
+dotnet add package NetcoreFSL
+```
+
+## Inicio rápido
 
 ```csharp
 using NetcoreFSL;
@@ -88,104 +62,142 @@ fsl.SearchCompleted += (_, e) =>
 fsl.FileSearch();
 ```
 
+## API pública
+
+### Clase `FSL`
+
+| Miembro | Descripción |
+|---------|-------------|
+| `FSL.Version` | Versión semántica (`1.0.0`) |
+| `FSL(handler, folder, pattern)` | Constructor |
+| `FSL(handler, folder, pattern, cancellationToken)` | Constructor con cancelación |
+| `FileSearch()` | Búsqueda recursiva de archivos |
+| `FolderSearch()` | Búsqueda recursiva de carpetas |
+| `CancelSearch()` | Cancela la búsqueda activa |
+| `PauseSearch()` | Pausa la búsqueda activa |
+| `ResumeSearch()` | Reanuda la búsqueda pausada |
+
+### Eventos
+
+| Evento | Cuándo se dispara |
+|--------|-------------------|
+| `DrivesFound` | Al enumerar unidades (`folder` = `""`, `"*"` o `"/"`) |
+| `FilesFound` | Archivos que coinciden con el patrón |
+| `FoldersFound` | Carpetas que coinciden con el patrón |
+| `SearchCanceled` | Al cancelar |
+| `SearchCompleted` | Al finalizar (`IsCompleted` = éxito) |
+| `SearchPaused` / `SearchResumed` | Al pausar / reanudar |
+
+### `ExecuteHandlers`
+
+| Valor | Comportamiento |
+|-------|----------------|
+| `InCurrentTask` | Bloquea el hilo llamador hasta finalizar |
+| `InNewTask` | Ejecuta en `Task.Run` y retorna de inmediato |
+
+### Patrones
+
+| Tipo | Entrada | Normalizado |
+|------|---------|-------------|
+| Archivo | `.pdf` | `*.pdf` |
+| Archivo | `*.log` | `*.log` |
+| Carpeta | `systemd` | `systemd` |
+| Carpeta | `cache*` | `cache*` |
+
+### Comportamiento entre búsquedas
+
+- Los eventos **persisten** en la instancia `FSL`.
+- Una nueva `FileSearch()` / `FolderSearch()` **cancela** la búsqueda anterior.
+- Use **instancias separadas** para búsquedas concurrentes independientes.
+
+## Ejemplos
+
 ### Búsqueda de carpetas
 
 ```csharp
 var fsl = new FSL(ExecuteHandlers.InCurrentTask, "/etc", "systemd");
-
 fsl.FoldersFound += (_, e) =>
 {
   foreach (var dir in e.Folders)
     Console.WriteLine(dir.FullName);
 };
-
 fsl.FolderSearch();
 ```
 
-Patrones de carpeta: nombre literal (`systemd`, `node_modules`) o comodines (`cache*`, `*.d`).
-
-### Cancelación y ejecución en segundo plano
+### Cancelación y segundo plano
 
 ```csharp
 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
 var fsl = new FSL(ExecuteHandlers.InNewTask, "/var/log", ".log", cts.Token);
-
 fsl.SearchCompleted += (_, e) => Console.WriteLine(e.IsCompleted);
-fsl.SearchCanceled += (_, e) => Console.WriteLine(e.IsCanceled);
-
 fsl.FileSearch(); // retorna de inmediato
-
-// fsl.CancelSearch(); // o cancelar manualmente
 ```
 
-### Proyecto de prueba
+## Verificación y pruebas
+
+### Tests automatizados (.NET 8)
+
+```bash
+dotnet test netcore-fsl.sln -c Release
+```
+
+**Resultado verificado:** 15/15 pruebas OK, 0 errores, 0 warnings (Release).
+
+Detalle en [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
+### Proyecto de prueba manual
 
 ```bash
 dotnet run --project NetcoreTEST -- /etc .conf file sync
-dotnet run --project NetcoreTEST -- /etc systemd folder
-dotnet run --project NetcoreTEST -- /var cache* folder async
-FSL_TIMEOUT_MS=5000 dotnet run --project NetcoreTEST -- / usr
+dotnet run --project NetcoreTEST -- /etc systemd folder async
 ```
 
-Argumentos: `<carpeta> <patron> [file|folder] [sync|async]`.
+Argumentos: `<carpeta> <patron> [file|folder] [sync|async]`
 
-Variables de entorno: `FSL_FOLDER`, `FSL_PATTERN`, `FSL_MODE`, `FSL_HANDLER`, `FSL_TIMEOUT_MS`.
-
-### Tests automatizados
-
-```bash
-dotnet test netcore-fsl.sln
-```
-
-Cubre recursión, patrones, cancelación, `InNewTask` y permisos denegados (Linux).
+Variables de entorno: `FSL_FOLDER`, `FSL_PATTERN`, `FSL_MODE`, `FSL_HANDLER`, `FSL_TIMEOUT_MS`
 
 ## Limitaciones conocidas
 
-- Los symlinks pueden provocar visitas duplicadas; se detectan ciclos por ruta canónica visitada.
-- En Windows, rutas muy largas pueden requerir el prefijo `\\?\` (no implementado aún).
-- `InNewTask` no propaga excepciones al hilo llamador; suscríbase a `SearchCompleted`.
+| Limitación | Detalle |
+|------------|---------|
+| Symlinks | Pueden generar visitas duplicadas; se detectan ciclos por ruta visitada |
+| Rutas largas (Windows) | Prefijo `\\?\` no implementado aún |
+| `InNewTask` | Excepciones no se propagan al hilo llamador; use `SearchCompleted` |
+| Workloads Snap | SDK vía Snap puede mostrar aviso de workloads; no afecta este proyecto |
 
-## Política de versionado
+## Estructura del repositorio
 
-Se sigue [Semantic Versioning](https://semver.org/):
+```
+netcore-fsl/
+├── NetcoreFSL/          # Biblioteca principal
+├── NetcoreFSL.Tests/    # Tests xUnit (15 pruebas)
+├── NetcoreTEST/         # Consola de prueba manual
+├── docs/VERIFICATION.md # Verificación .NET 8
+├── CHANGELOG.md
+└── DEVELOPMENT_PLAN.md
+```
 
-| Segmento | Cuándo incrementar |
-|----------|-------------------|
-| **MAJOR** | Cambios incompatibles en la API pública |
-| **MINOR** | Nueva funcionalidad compatible (p. ej. cierre de una fase del plan) |
-| **PATCH** | Correcciones de bugs compatibles |
+## Versión en tiempo de ejecución
 
-Durante el desarrollo pre-1.0 (`0.x.y`), las versiones **MINOR** marcan hitos del [plan de desarrollo](DEVELOPMENT_PLAN.md):
+```csharp
+Console.WriteLine(FSL.Version);        // "1.0.0"
+Console.WriteLine(FSLVersion.Current); // "1.0.0"
+```
+
+Fuente de verdad: `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`.
+
+## Versionado
+
+[Semantic Versioning](https://semver.org/). Historial en [CHANGELOG.md](CHANGELOG.md).
 
 | Versión | Hito |
 |---------|------|
-| `0.1.0` | Fase 0 — saneamiento |
-| `0.2.0` | Fases 0–1 — búsqueda de archivos |
-| `0.3.0` | Fase 2 — API de ciclo de vida |
-| `0.4.0` | Fase 3 — búsqueda de carpetas |
-| `0.5.0` | Fase 4 — tests y .NET 8 |
-| `1.0.0` | Release estable |
+| `1.0.0` | Release estable — Fases 0–5 |
+| `0.5.0` | Tests y migración .NET 8 |
+| `0.4.0` | Búsqueda de carpetas |
+| `0.3.0` | API de ciclo de vida |
 
-### Mensajes de commit con versión
-
-```
-chore: complete phase 0 cleanup (v0.1.0)
-feat: implement recursive file search (v0.2.0)
-feat: add automated tests and migrate to net8 (v0.5.0)
-release: v1.0.0
-```
-
-Al publicar una versión, actualizar:
-
-1. `NetcoreFSL/NetcoreFSL.csproj` → `<Version>`
-2. `CHANGELOG.md` → nueva entrada
-3. `README.md` → línea de versión al inicio
-4. Tag git: `git tag v0.x.0`
-
-## Requisitos
-
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior
+Plan completo: [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md).
 
 ## Licencia
 

@@ -7,6 +7,19 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- (pendiente Fase 6) Pipeline CI y publicación NuGet.
+
+## [1.0.0] - 2026-07-05
+
+### Added
+- Documentación completa: README reescrito, `docs/VERIFICATION.md` con verificación .NET 8.
+- Comentarios XML (`///`) en toda la API pública (`FSL`, `FSLVersion`, `ExecuteHandlers`, eventos).
+
+### Changed
+- Versión estable `1.0.0` — Fases 0–5 completadas.
+- `GenerateDocumentationFile` habilitado en `NetcoreFSL.csproj`.
+
 ## [0.5.0] - 2026-07-05
 
 ### Added
@@ -72,7 +85,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.2.0...v0.3.0
