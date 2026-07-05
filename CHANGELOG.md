@@ -7,6 +7,12 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-07-05
+
+### Fixed
+- Warning CS1700 en builds con strong-name: `InternalsVisibleTo` omitido en `OfficialBuild` (release no compila tests).
+- Documentación de Trusted Publishing: alinear Repository Owner, Environment y troubleshooting del error 401.
+
 ## [1.0.5] - 2026-07-05
 
 ### Added
@@ -124,7 +130,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.3...v1.0.5
 [1.0.3]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/alanjmrt94/netcore-fsl/compare/v1.0.1...v1.0.2

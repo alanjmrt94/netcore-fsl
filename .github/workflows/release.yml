@@ -1,6 +1,6 @@
 name: Release
 
-# Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.5).
+# Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.6).
 #
 # Environment "nuget-publish" (Settings → Environments):
 #   NUGET_USER              — username nuget.org de quien CREÓ la política Trusted Publishing
@@ -36,7 +36,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Setup NuGet CLI
-        uses: nuget/setup-nuget@v2
+        uses: nuget/setup-nuget@v4
         with:
           nuget-version: 6.x
 

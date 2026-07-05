@@ -4,12 +4,32 @@ El repositorio usa [GitHub Actions](https://docs.github.com/en/actions) para bui
 
 ## Workflows
 
-Los workflows usan acciones oficiales en **Node 24** (`@v5`) y `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` a nivel de workflow.
-
 | Archivo | Disparador | Qué hace |
 |---------|------------|----------|
 | `.github/workflows/ci.yml` | Push / PR a `master` o `main` | `restore` → `build` (Release) → `test` → `pack` (smoke) |
 | `.github/workflows/release.yml` | Push de tag `v*.*.*` | build → pack → firma opcional → publicación en [NuGet.org](https://www.nuget.org/) |
+
+## Node.js 24 en los runners
+
+GitHub deprecó Node.js 20 en los runners. Ambos workflows declaran:
+
+```yaml
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+```
+
+Eso fuerza la ejecución en Node 24 de acciones que aún declaran Node 20. Preferimos acciones que ya usen Node 24 de forma nativa para evitar warnings.
+
+| Acción | Versión | Runtime |
+|--------|---------|---------|
+| `actions/checkout` | `@v5` | Node 24 |
+| `actions/setup-dotnet` | `@v5` | Node 24 |
+| `actions/cache` | `@v5` | Node 24 |
+| `actions/upload-artifact` | `@v5` | Node 24 |
+| `nuget/setup-nuget` | `@v4` | Node 24 |
+| `NuGet/login` | `@v1` | Node 24 |
+
+> **Nota:** `nuget/setup-nuget@v2` apuntaba a Node 20 y generaba warnings aun con `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`. `@v4` es la versión actual con runtime Node 24.
 
 ## Badge de estado
 
@@ -26,7 +46,7 @@ Los workflows usan acciones oficiales en **Node 24** (`@v5`) y `FORCE_JAVASCRIPT
 
 El workflow `release.yml` usa [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) (OIDC). No se usan API keys permanentes.
 
-#### 1. Environment en GitHub (recomendado)
+#### 1. Environment en GitHub
 
 Los secrets de publicación van en un **Environment**, no a nivel de repositorio. Así podés limitar quién publica y restringir despliegues a tags.
 
@@ -41,7 +61,7 @@ Dentro del environment → **Environment secrets**:
 | Secret | ¿Obligatorio? | Descripción |
 |--------|---------------|-------------|
 | `NUGET_USER` | **Sí** | Username **nuget.org de quien creó la política** de Trusted Publishing (no el owner del paquete si difieren). Ver [solución de problemas](#solución-de-problemas-trusted-publishing) |
-| `EMZAPPS_SNK` | No | Strong-name `.snk` en **base64** (mismo que [NETFastSearchLibrary](https://github.com/alanjmrt94/netcore-fsl)) |
+| `EMZAPPS_SNK` | No | Strong-name `.snk` en **base64** (mismo que NETFastSearchLibrary) |
 | `NUGET_SIGN_CERT_PFX` | No | Certificado Authenticode `.pfx` en **base64** |
 | `NUGET_SIGN_CERT_PASSWORD` | No | Contraseña del `.pfx` (requerida si hay certificado) |
 
@@ -62,19 +82,28 @@ El job en `release.yml` declara `environment: nuget-publish`; solo ese job acced
 
 #### 2. Política en nuget.org
 
-**nuget.org** → cuenta → **Trusted Publishing** → crear política:
+**nuget.org** → cuenta → **Trusted Publishing** → crear o editar política.
 
-| Campo | Valor |
-|-------|--------|
-| Owner (GitHub) | `alanjmrt94` |
+Los valores deben coincidir **exactamente** con el repo y el workflow (nuget.org valida el token OIDC de GitHub campo por campo):
+
+| Campo en nuget.org | Valor |
+|--------------------|--------|
+| Package owner | `alanjmrt94` |
+| Repository Owner (GitHub) | `alanjmrt94` |
 | Repository | `netcore-fsl` |
-| Workflow File | `release.yml` |
+| Workflow File | `release.yml` (solo el nombre, sin `.github/workflows/`) |
+| Environment | `nuget-publish` (o vacío si no querés restringir por environment) |
+
+Errores frecuentes:
+
+- **Repository Owner** distinto al owner real del repo (p. ej. `EMZ-Apps` cuando el repo es `alanjmrt94/netcore-fsl`).
+- **Environment** distinto al declarado en `release.yml` (p. ej. `prod` vs `nuget-publish`).
 
 #### 3. Tag y push
 
 ```bash
-git tag -a v1.0.5 -m "Release v1.0.5"
-git push origin v1.0.5
+git tag -a v1.0.6 -m "Release v1.0.6"
+git push origin v1.0.6
 ```
 
 O usar el script local (ver abajo), que crea el tag y dispara el workflow.
@@ -123,21 +152,30 @@ El script exige árbol git limpio (salvo `--dry-run`), lee la versión de `Netco
 
 ### Error 401: «No matching trust policy owned by user …»
 
-El paso `NuGet/login@v1` falla si `NUGET_USER` no coincide con el **usuario de nuget.org que creó la política**, aunque ese usuario no sea el owner visible del paquete.
+El paso `NuGet/login@v1` falla si no hay una política que coincida con el token OIDC. Revisá en este orden:
 
-1. Entrá en **nuget.org** → tu perfil → **Trusted Publishing** y confirmá que existe una política con:
-   - **GitHub owner:** `alanjmrt94`
-   - **Repository:** `netcore-fsl`
-   - **Workflow file:** `release.yml` (solo el nombre del archivo, sin ruta)
-2. Anotá el username de la cuenta con la que **creaste** esa política (p. ej. `alanjmrt94`, no un alias de organización distinto).
-3. En GitHub → **Settings** → **Environments** → `nuget-publish` → actualizá el secret `NUGET_USER` con ese username exacto (sensible a mayúsculas).
-4. Volvé a ejecutar el workflow (re-run del job o un nuevo tag).
+1. **`NUGET_USER`:** debe ser el username de nuget.org de quien **creó** la política (no necesariamente el package owner).
+2. **Repository Owner:** debe ser `alanjmrt94` (owner del repo en GitHub).
+3. **Repository:** `netcore-fsl`.
+4. **Workflow file:** `release.yml`.
+5. **Environment:** `nuget-publish` (o dejá el campo vacío en nuget.org).
 
-Si la política la creó otra persona del equipo, `NUGET_USER` debe ser **su** username de nuget.org, no el tuyo ni el nombre del paquete.
+En GitHub → **Settings** → **Environments** → `nuget-publish` → verificá `NUGET_USER`.
+
+Volvé a ejecutar el workflow:
+
+```bash
+gh run list --workflow=release.yml
+gh run rerun <run-id> --failed
+```
 
 ### Warning CS1700 en `release.yml` (InternalsVisibleTo)
 
 Los builds con `OfficialBuild=true` (release en CI) no compilan tests; `InternalsVisibleTo` solo aplica en builds locales/CI sin strong-name. Si apareciera de nuevo, revisá que no haya un `PublicKey` truncado en el `.csproj`.
+
+### Warning «Node.js 20 is deprecated»
+
+Actualizá las acciones JavaScript a versiones con runtime Node 24 (ver tabla arriba). Con `nuget/setup-nuget@v4` y el resto en `@v5`, no deberían quedar warnings de deprecación.
 
 ## Verificación local (equivalente al CI)
 
