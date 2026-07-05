@@ -3,7 +3,7 @@ name: Release
 # Publica en NuGet.org al pushear un tag SemVer (p. ej. v1.0.5).
 #
 # Environment "nuget-publish" (Settings → Environments):
-#   NUGET_USER              — username nuget.org (Trusted Publishing)
+#   NUGET_USER              — username nuget.org de quien CREÓ la política Trusted Publishing
 #   EMZAPPS_SNK             — (opcional) strong-name .snk en base64
 #   NUGET_SIGN_CERT_PFX     — (opcional) certificado Authenticode .pfx en base64
 #   NUGET_SIGN_CERT_PASSWORD — (opcional) contraseña del .pfx

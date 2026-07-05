@@ -40,7 +40,7 @@ Dentro del environment → **Environment secrets**:
 
 | Secret | ¿Obligatorio? | Descripción |
 |--------|---------------|-------------|
-| `NUGET_USER` | **Sí** | Username de nuget.org (Trusted Publishing) |
+| `NUGET_USER` | **Sí** | Username **nuget.org de quien creó la política** de Trusted Publishing (no el owner del paquete si difieren). Ver [solución de problemas](#solución-de-problemas-trusted-publishing) |
 | `EMZAPPS_SNK` | No | Strong-name `.snk` en **base64** (mismo que [NETFastSearchLibrary](https://github.com/alanjmrt94/netcore-fsl)) |
 | `NUGET_SIGN_CERT_PFX` | No | Certificado Authenticode `.pfx` en **base64** |
 | `NUGET_SIGN_CERT_PASSWORD` | No | Contraseña del `.pfx` (requerida si hay certificado) |
@@ -118,6 +118,26 @@ gh run list --workflow=release.yml
 **Requisitos:** .NET 8 SDK, `git`, `gh auth login`, environment `nuget-publish` con `NUGET_USER`.
 
 El script exige árbol git limpio (salvo `--dry-run`), lee la versión de `NetcoreFSL.csproj` y las notas de `CHANGELOG.md`.
+
+## Solución de problemas (Trusted Publishing)
+
+### Error 401: «No matching trust policy owned by user …»
+
+El paso `NuGet/login@v1` falla si `NUGET_USER` no coincide con el **usuario de nuget.org que creó la política**, aunque ese usuario no sea el owner visible del paquete.
+
+1. Entrá en **nuget.org** → tu perfil → **Trusted Publishing** y confirmá que existe una política con:
+   - **GitHub owner:** `alanjmrt94`
+   - **Repository:** `netcore-fsl`
+   - **Workflow file:** `release.yml` (solo el nombre del archivo, sin ruta)
+2. Anotá el username de la cuenta con la que **creaste** esa política (p. ej. `alanjmrt94`, no un alias de organización distinto).
+3. En GitHub → **Settings** → **Environments** → `nuget-publish` → actualizá el secret `NUGET_USER` con ese username exacto (sensible a mayúsculas).
+4. Volvé a ejecutar el workflow (re-run del job o un nuevo tag).
+
+Si la política la creó otra persona del equipo, `NUGET_USER` debe ser **su** username de nuget.org, no el tuyo ni el nombre del paquete.
+
+### Warning CS1700 en `release.yml` (InternalsVisibleTo)
+
+Los builds con `OfficialBuild=true` (release en CI) no compilan tests; `InternalsVisibleTo` solo aplica en builds locales/CI sin strong-name. Si apareciera de nuevo, revisá que no haya un `PublicKey` truncado en el `.csproj`.
 
 ## Verificación local (equivalente al CI)
 

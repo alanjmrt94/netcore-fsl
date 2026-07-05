@@ -34,12 +34,9 @@
     <AssemblyOriginatorKeyFile>EMZApps.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <!-- Tests: friend assembly (condicional según strong-name). -->
+  <!-- Tests: friend assembly solo en builds sin strong-name (CI local / dev). -->
   <ItemGroup Condition="'$(OfficialBuild)' != 'true'">
     <InternalsVisibleTo Include="NetcoreFSL.Tests" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(OfficialBuild)' == 'true'">
-    <InternalsVisibleTo Include="NetcoreFSL.Tests" PublicKey="0024000004800000400000000600000000000000004240285006800000000000000" />
   </ItemGroup>
 
   <ItemGroup>
