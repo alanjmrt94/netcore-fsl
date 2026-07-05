@@ -29,6 +29,27 @@ git push origin v1.0.3
 
 El workflow `Release` empaqueta y sube `NetcoreFSL.<version>.nupkg`. `--skip-duplicate` evita fallar si el paquete ya existe.
 
+## Script local (`scripts/release.sh`)
+
+Alternativa al workflow de GitHub para publicar desde tu máquina en un solo paso:
+
+```bash
+export NUGET_API_KEY="su-api-key"
+./scripts/release.sh --push-branch
+```
+
+| Opción | Descripción |
+|--------|-------------|
+| `--dry-run` | Solo `restore`, `build`, `test` y `pack` (sin publicar) |
+| `--skip-nuget` | Tag + release en GitHub, sin NuGet.org |
+| `--skip-github` | Solo publicar en NuGet.org |
+| `--push-branch` | Push de la rama actual antes de crear el tag |
+| `--yes` | Sin confirmación interactiva |
+
+**Requisitos:** .NET 8 SDK, `git`, `gh` autenticado (`gh auth login`), variable `NUGET_API_KEY`.
+
+El script lee la versión desde `NetcoreFSL/NetcoreFSL.csproj`, exige árbol git limpio (salvo en `--dry-run`), extrae las notas de `CHANGELOG.md` para el release de GitHub y adjunta el `.nupkg`.
+
 ## Verificación local (equivalente al CI)
 
 ```bash

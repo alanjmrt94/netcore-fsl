@@ -46,7 +46,7 @@ Tras publicar un release (tag `v*.*.*` + secret `NUGET_API_KEY` en GitHub), inst
 dotnet add package NetcoreFSL
 ```
 
-Instrucciones para mantenedores: [docs/CI.md](docs/CI.md).
+Instrucciones para mantenedores: [docs/CI.md](docs/CI.md). Script todo-en-uno: `./scripts/release.sh`.
 
 ## Inicio rápido
 
@@ -183,6 +183,8 @@ netcore-fsl/
 ├── docs/
 │   ├── VERIFICATION.md  # Verificación .NET 8
 │   └── CI.md            # GitHub Actions y publicación NuGet
+├── scripts/
+│   └── release.sh       # Build, test, pack, NuGet y GitHub Release
 └── CHANGELOG.md
 ```
 

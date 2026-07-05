@@ -13,6 +13,7 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - GitHub Actions: workflow `CI` (restore, build, test, pack) en push/PR a `master`/`main`.
 - Workflow `Release` para publicar en NuGet.org al pushear tags `v*.*.*`.
 - `docs/CI.md` con instrucciones de badge, secrets y publicación.
+- `scripts/release.sh` para publicar localmente (build, test, NuGet y GitHub Release).
 
 ## [1.0.2] - 2026-07-05
 
