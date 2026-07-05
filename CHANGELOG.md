@@ -7,6 +7,17 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-05
+
+### Added
+- Proyecto `NetcoreFSL.Tests` con xUnit: recursión, patrones, cancelación, `InNewTask`, permisos (Linux).
+- `InternalsVisibleTo` para pruebas de `SearchPatternHelper`.
+
+### Changed
+- Migración de `net6.0` a `net8.0` en todos los proyectos.
+- `Nullable` habilitado en `NetcoreFSL`.
+- Metadatos NuGet ampliados (`RepositoryType`, `PackageTags`, `PackageReadmeFile`).
+
 ## [0.4.0] - 2026-07-05
 
 ### Added
@@ -61,7 +72,8 @@ y el proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Estructura inicial de la biblioteca: `SearcherBase`, `FilePatternSearch`, eventos y `ExecuteHandlers`.
 - Proyecto de prueba `NetcoreTEST`.
 
-[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/alanjmrt94/netcore-fsl/compare/v0.1.0...v0.2.0

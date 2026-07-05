@@ -1,9 +1,9 @@
 # NetcoreFSL
 
-**Versión:** `0.4.0` · **Estado:** WIP — Fases 0–3 completadas  
+**Versión:** `0.5.0` · **Estado:** WIP — Fases 0–4 completadas  
 **aka:** NetCore FastSearchLibrary
 
-Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite buscar archivos y directorios mediante patrones.
+Biblioteca multiplataforma y multi-hilo para .NET 8, escrita en C#, que permite buscar archivos y directorios mediante patrones.
 
 ## Qué incluye esta versión
 
@@ -17,6 +17,7 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 | Normalización de patrones de archivos (`.conf` → `*.conf`) | Disponible |
 | Búsqueda recursiva de carpetas por patrón (`FolderSearch`) | Disponible |
 | Normalización de patrones de carpetas (literal o comodín) | Disponible |
+| Tests automatizados (`NetcoreFSL.Tests`, xUnit) | Disponible |
 
 ## API pública (`FSL`)
 
@@ -61,8 +62,8 @@ Biblioteca multiplataforma y multi-hilo para .NET 6, escrita en C#, que permite 
 ```csharp
 using NetcoreFSL;
 
-Console.WriteLine(FSL.Version);        // "0.4.0"
-Console.WriteLine(FSLVersion.Current); // "0.4.0"
+Console.WriteLine(FSL.Version);        // "0.5.0"
+Console.WriteLine(FSLVersion.Current); // "0.5.0"
 ```
 
 La versión se define en `NetcoreFSL/NetcoreFSL.csproj` y se expone en código mediante `FSL.Version` y `FSLVersion`.
@@ -131,6 +132,14 @@ Argumentos: `<carpeta> <patron> [file|folder] [sync|async]`.
 
 Variables de entorno: `FSL_FOLDER`, `FSL_PATTERN`, `FSL_MODE`, `FSL_HANDLER`, `FSL_TIMEOUT_MS`.
 
+### Tests automatizados
+
+```bash
+dotnet test netcore-fsl.sln
+```
+
+Cubre recursión, patrones, cancelación, `InNewTask` y permisos denegados (Linux).
+
 ## Limitaciones conocidas
 
 - Los symlinks pueden provocar visitas duplicadas; se detectan ciclos por ruta canónica visitada.
@@ -155,6 +164,7 @@ Durante el desarrollo pre-1.0 (`0.x.y`), las versiones **MINOR** marcan hitos de
 | `0.2.0` | Fases 0–1 — búsqueda de archivos |
 | `0.3.0` | Fase 2 — API de ciclo de vida |
 | `0.4.0` | Fase 3 — búsqueda de carpetas |
+| `0.5.0` | Fase 4 — tests y .NET 8 |
 | `1.0.0` | Release estable |
 
 ### Mensajes de commit con versión
@@ -162,7 +172,7 @@ Durante el desarrollo pre-1.0 (`0.x.y`), las versiones **MINOR** marcan hitos de
 ```
 chore: complete phase 0 cleanup (v0.1.0)
 feat: implement recursive file search (v0.2.0)
-feat: add folder search (v0.4.0)
+feat: add automated tests and migrate to net8 (v0.5.0)
 release: v1.0.0
 ```
 
@@ -175,7 +185,7 @@ Al publicar una versión, actualizar:
 
 ## Requisitos
 
-- [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) o superior
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior
 
 ## Licencia
 

@@ -13,22 +13,22 @@ namespace NetcoreFSL
   /// </summary>
   public class FSL
   {
-    /// <summary>Versión semántica de la biblioteca (p. ej. <c>0.4.0</c>).</summary>
+    /// <summary>Versión semántica de la biblioteca (p. ej. <c>0.5.0</c>).</summary>
     public static string Version => FSLVersion.Current;
 
     private readonly ExecuteHandlers handlerOption;
     private readonly string folder;
     private readonly string pattern;
     private readonly CancellationToken cancellationToken;
-    private SearcherBase searcher;
+    private SearcherBase? searcher;
 
-    public event EventHandler<DriveEventArgs> DrivesFound;
-    public event EventHandler<FileEventArgs> FilesFound;
-    public event EventHandler<FolderEventArgs> FoldersFound;
-    public event EventHandler<SearchCanceledEventArgs> SearchCanceled;
-    public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-    public event EventHandler<SearchPausedEventArgs> SearchPaused;
-    public event EventHandler<SearchResumedEventArgs> SearchResumed;
+    public event EventHandler<DriveEventArgs>? DrivesFound;
+    public event EventHandler<FileEventArgs>? FilesFound;
+    public event EventHandler<FolderEventArgs>? FoldersFound;
+    public event EventHandler<SearchCanceledEventArgs>? SearchCanceled;
+    public event EventHandler<SearchCompletedEventArgs>? SearchCompleted;
+    public event EventHandler<SearchPausedEventArgs>? SearchPaused;
+    public event EventHandler<SearchResumedEventArgs>? SearchResumed;
 
     public FSL(ExecuteHandlers handlerOption, string folder, string pattern)
       : this(handlerOption, folder, pattern, CancellationToken.None)
@@ -91,11 +91,11 @@ namespace NetcoreFSL
     {
       if (handlerOption == ExecuteHandlers.InNewTask)
       {
-        Task.Run(() => searcher.StartSearch(), cancellationToken);
+        Task.Run(() => searcher!.StartSearch(), cancellationToken);
       }
       else
       {
-        searcher.StartSearch();
+        searcher!.StartSearch();
       }
     }
 
@@ -121,12 +121,12 @@ namespace NetcoreFSL
       instance.SearchResumed -= ForwardSearchResumed;
     }
 
-    private void ForwardDrivesFound(object sender, DriveEventArgs e) => DrivesFound?.Invoke(this, e);
-    private void ForwardFilesFound(object sender, FileEventArgs e) => FilesFound?.Invoke(this, e);
-    private void ForwardFoldersFound(object sender, FolderEventArgs e) => FoldersFound?.Invoke(this, e);
-    private void ForwardSearchCanceled(object sender, SearchCanceledEventArgs e) => SearchCanceled?.Invoke(this, e);
-    private void ForwardSearchCompleted(object sender, SearchCompletedEventArgs e) => SearchCompleted?.Invoke(this, e);
-    private void ForwardSearchPaused(object sender, SearchPausedEventArgs e) => SearchPaused?.Invoke(this, e);
-    private void ForwardSearchResumed(object sender, SearchResumedEventArgs e) => SearchResumed?.Invoke(this, e);
+    private void ForwardDrivesFound(object? sender, DriveEventArgs e) => DrivesFound?.Invoke(this, e);
+    private void ForwardFilesFound(object? sender, FileEventArgs e) => FilesFound?.Invoke(this, e);
+    private void ForwardFoldersFound(object? sender, FolderEventArgs e) => FoldersFound?.Invoke(this, e);
+    private void ForwardSearchCanceled(object? sender, SearchCanceledEventArgs e) => SearchCanceled?.Invoke(this, e);
+    private void ForwardSearchCompleted(object? sender, SearchCompletedEventArgs e) => SearchCompleted?.Invoke(this, e);
+    private void ForwardSearchPaused(object? sender, SearchPausedEventArgs e) => SearchPaused?.Invoke(this, e);
+    private void ForwardSearchResumed(object? sender, SearchResumedEventArgs e) => SearchResumed?.Invoke(this, e);
   }
 }

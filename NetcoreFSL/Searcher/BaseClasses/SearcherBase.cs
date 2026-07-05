@@ -32,14 +32,14 @@ namespace NetcoreFSL.Searcher.BaseClasses
       searchCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
     }
 
-    public event EventHandler<DriveEventArgs> DrivesFound;
-    public event EventHandler<FileEventArgs> FilesFound;
-    public event EventHandler<FolderEventArgs> FoldersFound;
+    public event EventHandler<DriveEventArgs>? DrivesFound;
+    public event EventHandler<FileEventArgs>? FilesFound;
+    public event EventHandler<FolderEventArgs>? FoldersFound;
 
-    public event EventHandler<SearchCanceledEventArgs> SearchCanceled;
-    public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-    public event EventHandler<SearchPausedEventArgs> SearchPaused;
-    public event EventHandler<SearchResumedEventArgs> SearchResumed;
+    public event EventHandler<SearchCanceledEventArgs>? SearchCanceled;
+    public event EventHandler<SearchCompletedEventArgs>? SearchCompleted;
+    public event EventHandler<SearchPausedEventArgs>? SearchPaused;
+    public event EventHandler<SearchResumedEventArgs>? SearchResumed;
 
     public bool IsPaused => isPaused;
 
@@ -261,19 +261,17 @@ namespace NetcoreFSL.Searcher.BaseClasses
       }
     }
 
-    private void InvokeEvent<TEventArgs>(EventHandler<TEventArgs> handler, TEventArgs args)
+    private void InvokeEvent<TEventArgs>(EventHandler<TEventArgs>? handler, TEventArgs args)
       where TEventArgs : EventArgs
     {
-      EventHandler<TEventArgs> subscribers = handler;
-
-      if (subscribers == null)
+      if (handler == null)
       {
         return;
       }
 
       lock (eventLock)
       {
-        subscribers.Invoke(this, args);
+        handler.Invoke(this, args);
       }
     }
   }
