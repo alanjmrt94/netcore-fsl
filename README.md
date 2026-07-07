@@ -1,5 +1,7 @@
 # NetcoreFSL
 
+[NuGet](https://www.nuget.org/packages/NetcoreFSL) · [GitHub](https://github.com/alanjmrt94/netcore-fsl) · [Releases](https://github.com/alanjmrt94/netcore-fsl/releases)
+
 ![CI](https://github.com/alanjmrt94/netcore-fsl/actions/workflows/ci.yml/badge.svg?branch=master)
 
 **Versión:** `1.0.6` · **Estado:** estable (Fases 0–6)  
